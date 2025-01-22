@@ -1,11 +1,26 @@
 package game.object;
 
+import game.entity.Entity;
+
 public class Object {
 	
 	// Variables
 	String NAME;
 	String DESC;
 	int AMOUNT;
+	
+	// Functions
+	public void Use(Entity target) {}
+	
+	public void Equip() {}
+	
+	public void add() {AMOUNT++;}
+	
+	public void add(int amount) {AMOUNT+= amount;}
+	
+	public void remove() {AMOUNT--;}
+	
+	public void remove(int amount) {AMOUNT-=amount;}
 	
 	// Setters & Getters
 	public void setNAME(String NAME) {

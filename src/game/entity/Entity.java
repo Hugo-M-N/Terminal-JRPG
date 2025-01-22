@@ -2,7 +2,6 @@ package game.entity;
 
 import java.util.ArrayList;
 
-import game.EntityClass;
 import game.object.Object;
 import game.skill.Skill;
 
@@ -12,6 +11,8 @@ public class Entity {
 	String NAME;
 	int LVL;
 	int XP;
+	int LvlXP;
+	int GOLD;
 	EntityClass CLASS;
 	int HP;
 	int MAX_HP;
@@ -23,7 +24,7 @@ public class Entity {
 	int DEX;
 	int T_COUNT;
 	int ACCION;
-	Skill EFFECT = new Skill("",0,0);
+	Skill EFFECT = new Skill("",0,null,0);
 	int EF_COUNT;
 	boolean isDef;
 	ArrayList<Skill> Skills = new ArrayList<>();
@@ -47,22 +48,131 @@ public class Entity {
 		
 	}
 	
+	public void addXP(int XP) {
+		this.XP += XP;
+		 this.LvlXP = (int) (this.LVL + 9 + (Math.pow(this.LVL, (this.LVL*0.05))));
+		while(this.XP>=LvlXP) {
+			this.XP-=LvlXP;
+			LvlUp();
+		}
+	}
+	
+	public void LvlUp() {
+		this.LVL++;
+		System.out.printf("%s got lvl %d!\n",this.NAME, this.LVL);
+		int points= (int) (Math.random()*3)+1;
+		while(points>0) {
+			int Stat = (int) (Math.random()*12);
+			if(this.CLASS==EntityClass.WARRIOR) {
+				if(Stat<=4) {
+					this.STR++;
+					System.out.printf("%s's STR is now %d.\n", this.NAME, this.STR);
+				} else if(Stat<6) {
+					this.MAG++;
+					System.out.printf("%s's MAG is now %d.\n", this.NAME, this.MAG);
+				} else if(Stat<=8) {
+					this.DEF++;
+					System.out.printf("%s's DEF is now %d.\n", this.NAME, this.DEF);
+				} else {
+					this.DEX++;
+					System.out.printf("%s's DEX is now %d.\n", this.NAME, this.DEX);
+				}
+				
+				this.MAX_HP = (int) (this.DEF * 0.25 * LVL);
+				this.HP = this.MAX_HP;
+				this.MAX_MP = (int) (this.MAG * 0.1 * LVL);
+				this.MP = this.MAX_MP;
+				
+			} else if(this.CLASS==EntityClass.MAGE) {
+				if(Stat<=1) {
+					this.STR++;
+					System.out.printf("%s's STR is now %d.\n", this.NAME, this.STR);
+				} else if(Stat<7) {
+					this.MAG++;
+					System.out.printf("%s's MAG is now %d.\n", this.NAME, this.MAG);
+				} else if(Stat<=9) {
+					this.DEF++;
+					System.out.printf("%s's DEF is now %d.\n", this.NAME, this.DEF);
+				} else {
+					this.DEX++;
+					System.out.printf("%s's DEX is now %d.\n", this.NAME, this.DEX);
+				}
+				
+				this.MAX_HP = (int) (this.DEF * 0.1 * LVL);
+				this.HP = this.MAX_HP;
+				this.MAX_MP = (int) (this.MAG * 0.25 * LVL);
+				this.MP = this.MAX_MP;
+				
+			} else if(this.CLASS==EntityClass.CLERIC) {
+				if(Stat<=1) {
+					this.STR++;
+					System.out.printf("%s's STR is now %d.\n", this.NAME, this.STR);
+				} else if(Stat<6) {
+					this.MAG++;
+					System.out.printf("%s's MAG is now %d.\n", this.NAME, this.MAG);
+				} else if(Stat<=10) {
+					this.DEF++;
+					System.out.printf("%s's DEF is now %d.\n", this.NAME, this.DEF);
+				} else {
+					this.DEX++;
+					System.out.printf("%s's DEX is now %d.\n", this.NAME, this.DEX);
+				}
+				
+				this.MAX_HP = (int) (this.DEF * 0.15 * LVL);
+				this.HP = this.MAX_HP;
+				this.MAX_MP = (int) (this.MAG * 0.2 * LVL);
+				this.MP = this.MAX_MP;
+				
+			} else if(this.CLASS==EntityClass.ROGUE) {
+				if(Stat<=4) {
+					this.STR++;
+					System.out.printf("%s's STR is now %d.\n", this.NAME, this.STR);
+				} else if(Stat<6) {
+					this.MAG++;
+					System.out.printf("%s's MAG is now %d.\n", this.NAME, this.MAG);
+				} else if(Stat<=7) {
+					this.DEF++;
+					System.out.printf("%s's DEF is now %d.\n", this.NAME, this.DEF);
+				} else {
+					this.DEX++;
+					System.out.printf("%s's DEX is now %d.\n", this.NAME, this.DEX);
+				}
+				
+				this.MAX_HP = (int) (this.DEF * 0.15 * LVL);
+				this.HP = this.MAX_HP;
+				this.MAX_MP = (int) (this.MAG * 0.15 * LVL);
+				this.MP = this.MAX_MP;
+				
+			}
+			if(!(this.MAX_HP>0)) {
+				this.MAX_HP++;
+				this.HP = this.MAX_HP;
+			}
+			points--;
+		}
+		/*
+		 * To-do:
+		 * -Add Skills when a certain Lvl its achieved
+		 * 
+		 * */
+	}
+	
 	public void stats() {
 		// Clear terminal
         System.out.print("\033[H\033[2J");
         System.out.flush();
 		
-		System.out.println("____________________");
+		System.out.println("\033[40m\033[37m_________________________");
 		System.out.println("Stats\n");
 		System.out.println("Name: "+ this.NAME);
-		System.out.println("Lvl: "+ this.LVL);
-		System.out.println("HP "+ this.HP+"/"+this.MAX_HP);
-		System.out.println("MP "+ this.MP+"/"+this.MAX_MP);
+		System.out.println("Class: "+ this.CLASS);
+		System.out.println("Lvl: "+ this.LVL+ "   " + this.XP + "/" + this.LvlXP + "XP" + "   \033[33mG:"+this.GOLD);
+		System.out.print("\033[31mHP "+ this.HP+"/"+this.MAX_HP + "   \033[34mMP "+ this.MP+"/"+this.MAX_MP + "\n\033[37m");
 		System.out.println("STR: "+ this.STR);
 		System.out.println("MAG: "+ this.MAG);
 		System.out.println("DEF: "+ this.DEF);
 		System.out.println("DEX: "+ this.DEX);
-		System.out.println("____________________");
+		System.out.println("_________________________\033[0m");
 	}
 	
 	// Getters & Setters
@@ -90,7 +200,15 @@ public class Entity {
 	public void setXP(int XP) {
 		this.XP = XP;
 	}
-
+	
+	public int getGOLD() {
+		return GOLD;
+	}
+	
+	public void setGOLD(int GOLD) {
+		this.GOLD = GOLD;
+	}
+	
 	public EntityClass getCLASS() {
 		return CLASS;
 	}
@@ -199,7 +317,7 @@ public class Entity {
 		return isDef;
 	}
 
-	public void setDef(boolean isDef) {
+	public void setIsDef(boolean isDef) {
 		this.isDef = isDef;
 	}
 
@@ -222,6 +340,67 @@ public class Entity {
 	// Constructors
 	
 	public Entity(String NAME, EntityClass CLASS, int LVL) {
+		this.NAME = NAME;
+		this.LVL = LVL;
+		this.XP=0;
+		this.LvlXP = (int) (this.LVL + 9 + (Math.pow(this.LVL, (this.LVL*0.05))));
+		this.CLASS = CLASS;
+		this.GOLD = 0;
+		
+		
+		int LVL_P = 12 + LVL;
+		switch(CLASS) {
+			
+			case WARRIOR:
+				// Main stats: DEF & STR
+				this.STR = (int) ((4.0/12) * LVL_P);
+				this.MAG = (int) ((1.0/12) * LVL_P);
+				this.DEF = (int) ((5.0/12) * LVL_P);
+				this.DEX = (int) ((2.0/12) * LVL_P);
+				this.MAX_HP = (int) (this.DEF * 0.25 * LVL);
+				this.HP = this.MAX_HP;
+				this.MAX_MP = (int) (this.MAG * 0.1 * LVL);
+				this.MP = this.MAX_MP;
+				
+				break;
+			case MAGE:
+				// Main stats: MAG & DEX
+				this.STR = (int) ((1.0/12) * LVL_P);
+				this.MAG = (int) ((6.0/12) * LVL_P);
+				this.DEF = (int) ((2.0/12) * LVL_P);
+				this.DEX = (int) ((3.0/12) * LVL_P);
+				this.MAX_HP = (int) (this.DEF * 0.1 * LVL);
+				this.HP = this.MAX_HP;
+				this.MAX_MP = (int) (this.MAG * 0.25 * LVL);
+				this.MP = this.MAX_MP;
+				break;
+			case CLERIC:
+				// Main stats: MAG & DEF
+				this.STR = (int) ((1.0/12) * LVL_P);
+				this.MAG = (int) ((5.0/12) * LVL_P);
+				this.DEF = (int) ((4.0/12) * LVL_P);
+				this.DEX = (int) ((2.0/12) * LVL_P);
+				this.MAX_HP = (int) (this.DEF * 0.15 * LVL);
+				this.HP = this.MAX_HP;
+				this.MAX_MP = (int) (this.MAG * 0.2 * LVL);
+				this.MP = this.MAX_MP;
+				break;
+			case ROGUE:
+				// Main stats: STR & DEX
+				this.STR = (int) ((4.0/12) * LVL_P);
+				this.MAG = (int) ((2.0/12) * LVL_P);
+				this.DEF = (int) ((1.0/12) * LVL_P);
+				this.DEX = (int) ((5.0/12) * LVL_P);
+				this.MAX_HP = (int) (this.DEF * 0.15 * LVL);
+				this.HP = this.MAX_HP;
+				this.MAX_MP = (int) (this.MAG * 0.15 * LVL);
+				this.MP = this.MAX_MP;
+				break;
+		}
+		if(!(this.MAX_HP>0)) {
+			this.MAX_HP++;
+			this.HP = this.MAX_HP;
+		}
 		
 	}
 
@@ -236,6 +415,7 @@ public class Entity {
 		this.MAG = MAG;
 		this.DEF = DEF;
 		this.DEX = DEX;
+		this.GOLD = 0;
 	}
 
 }

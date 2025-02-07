@@ -407,6 +407,7 @@ public class Entity {
 	public Entity(String NAME, int LVL, int MAX_HP, int MAX_MP, int STR, int MAG, int DEF, int DEX) {
 		this.NAME = NAME;
 		this.LVL = LVL;
+		this.LvlXP = (int) (this.LVL + 9 + (Math.pow(this.LVL, (this.LVL*0.05))));
 		this.MAX_HP = MAX_HP;
 		this.HP = MAX_HP;
 		this.MAX_MP = MAX_MP;

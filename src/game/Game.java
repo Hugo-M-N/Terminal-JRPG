@@ -1,5 +1,6 @@
 package game;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -17,8 +18,9 @@ public class Game {
 	static Scanner sc = new Scanner(System.in);
 	public static void main(String[] args) {
 		boolean GAME = true;
-		String[] options = {"Search","Status","Skills","Inventory","Exit"};
+		String[] options = {"Search","Status","Skills","Inventory","Save and exit"};
 		int sel = 0;
+		ArrayList<Entity> Allies=null;
 		
 		// Clear Terminal
         System.out.print("\033[H\033[2J");
@@ -26,8 +28,19 @@ public class Game {
 		
         //Game start
         Welcome();
-        // Create Character
-        ArrayList<Entity> Allies = Start();
+        switch(MainMenu()) {
+        	case 1:
+        		// Create Character
+        		Allies = NewStart();
+        		break;
+        	case 2:
+        		// Load Game
+        		Allies = LoadMenu();
+        		break;
+        	case 3:
+        		// Exit
+        		return;
+        }
 
 		
 		//Test
@@ -65,8 +78,14 @@ public class Game {
 					ObjectList(Allies.get(0));
 					break;
 					
-				case "Exit":
-					GAME=false;
+				case "Save and exit":
+					boolean saved = SaveManager.SaveGame(Allies, Allies.get(0).getNAME());
+					if(saved) {
+						System.out.println("Gave saved");
+						GAME=false;
+					} else {
+						System.out.println("Some error happend.");
+					}
 					break;
 					
 				default:
@@ -90,12 +109,35 @@ public class Game {
 				+ "   )_(   (_______/|/   \\__/|/     \\|\\_______/|/    )_)|/     \\|(_______/_____(____/   |/   \\__/|/       (_______)\r\n"
 				+ "                                                                       (_____)                                   \033[0m";
 		System.out.println(logo);
-		System.out.println("Welcome to Terminal_JRPG.");
-		System.out.println("This game is a turn based game inspired by the classic JRPG's.");
-		System.out.println("Hope you have fun!");
 	}
 	
-	private static ArrayList<Entity> Start() {
+	private static int MainMenu(){
+		String[] options= {"New Game","Load Game","Exit Game"};
+		System.out.println("_________________________");
+		System.out.println("Main Menu");
+		for(int i=0; i<options.length;i++) {
+			System.out.println((i+1)+"- "+options[i]);
+		}
+		System.out.println("_________________________");
+		int sel=0;
+		while(!(sel>0 && sel<=options.length)) {
+			System.out.print("Selection: ");
+			try {
+				sel = Integer.valueOf(sc.nextLine());
+			} catch (Exception e) {
+			}
+		}
+		return sel;
+	}
+	
+	private static ArrayList<Entity> NewStart() {
+		// clear terminal
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+        
+		System.out.println("Welcome to Terminal_JRPG.");
+		System.out.println("This game is a turn based game inspired by the classic JRPG's.");
+		System.out.println("Hope you have fun!\n");
 		System.out.println("Let's create your character.");
 		System.out.println("What's your name? (Max 50 char)");
 		String Name="";
@@ -152,10 +194,34 @@ public class Game {
 					System.out.println("Invalid selection, try again.");
 			}
 		}
-		Entity Player = new Entity(Name, PClass, 1);
+		Entity Player = new Entity(Name, PClass, 10);
 		
 		ArrayList<Entity> Allies = new ArrayList<Entity>();
 		Allies.add(Player);
+		
+		return Allies;
+	}
+	
+	private static ArrayList<Entity> LoadMenu(){
+		ArrayList<Entity> Allies = new ArrayList<Entity>();
+		File directory = new File("saves/");
+		File[] saves = directory.listFiles();
+		int sel=0;
+		while(!(sel>0 && sel<=saves.length)) {
+			System.out.println("_________________________");
+			System.out.println("Load Menu\n");
+			for(int i=0; i<saves.length;i++) {
+				String name = (saves[i].getName());
+				System.out.println((i+1)+"- " + name);
+			}
+			System.out.println("_________________________");
+			System.out.print("Selection: ");
+			try {
+				sel = Integer.valueOf(sc.nextLine());		
+				Allies = SaveManager.LoadGame(saves[(sel-1)].getName());
+			} catch (Exception e) {
+			}
+		}
 		
 		return Allies;
 	}
@@ -168,7 +234,7 @@ public class Game {
 	}
 	
 	private static void Search(ArrayList<Entity> Allies) {
-		int n = (int) (Math.random()*10);
+		int n = (int) (Math.random()*12);
 		
 		if(n>=0 && n<=1) System.out.println("You didn´t find anything.\n");
 		else if(n>1 && n<=3) {
@@ -196,10 +262,10 @@ public class Game {
 			
 		} else {
 			System.out.println("You find an item.");
-			int item =(int) Math.round(Math.random()+1);
+			int item =(int) Math.round(Math.random()*2+1);
 			boolean found=false;
 			switch(item) {
-				case 1:
+				case 1,3:
 					System.out.println("You found a heal potion.");
 					Allies.get(0).addToInventory(new Potion("Heal potion", "This potion will heal you 10% of your max health.", PotionType.HEAL1));
 					break;

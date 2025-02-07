@@ -191,7 +191,7 @@ public class Combat {
 				Enemy = Enemies.get(0);
 			}
 		}
-		int dmg = (int)(Attaker.getSTR()*0.2 - (Enemy.getDEF()*0.2))+1;  // To do: add weapon damage and Equipment stats;
+		int dmg = (int)(Attaker.getSTR()*0.5 - (Enemy.getDEF()*0.2))+1;  // To do: add weapon damage and Equipment stats;
 		if(Enemy.isDef()) dmg = dmg/2;
 		
 		Enemy.setHP(Enemy.getHP()-dmg);

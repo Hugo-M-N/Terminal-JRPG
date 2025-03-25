@@ -6,8 +6,8 @@ At least by now its just a proyect made for fun and learn.
 Some bugs might appear.
 
 >[!IMPORTANT]
->If you want to play you need to use:enter the src directory and use  ```javac ./game/Game.java``` to compile and ```java game/Game``` to execute the game.
+>Now to play the game you only need to download the .jar file and execute ```java -jar Terminal_JRPG.jar```
 >If this doesn't work check if you have a java JDK.
 
 >[!IMPORTANT]
-> The save system is still in development. By now this system **DON'T SAVE ANY ITEM OR SKILL**, this will be implemented further on.
+> The save system is still in development. **Save files migth not work due to changes on save file structure**

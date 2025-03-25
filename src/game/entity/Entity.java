@@ -3,6 +3,7 @@ package game.entity;
 import java.util.ArrayList;
 
 import game.object.Object;
+import game.skill.DamageType;
 import game.skill.Skill;
 
 public class Entity {
@@ -155,6 +156,8 @@ public class Entity {
 		 * -Add Skills when a certain Lvl its achieved
 		 * 
 		 * */
+		// Test
+		if(this.LVL==5) Skills.add(new Skill("Test Skill", 2, DamageType.STR, 2));
 	}
 	
 	public void stats() {

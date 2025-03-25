@@ -200,7 +200,7 @@ public class Combat {
 	
 	private void Defend(Entity Defender) {
 		Defender.setIsDef(true);
-		System.out.printf("%s is defending.",Defender.getNAME());
+		System.out.printf("%s is defending.\n",Defender.getNAME());
 	}
 	
 	private void Skills(Entity Caster,  ArrayList<Entity> Allies, ArrayList<Entity> Enemies, boolean isEnemy) {
@@ -320,7 +320,7 @@ public class Combat {
 		int i;
 		for(i=0;i<Allies.size();i++) {
 			Entity Ally = Allies.get(i);
-			System.out.printf("%d- %s %d/%d-HP  %d/%d-MP\n",(i+1),Ally.getNAME(),Ally.getHP(),Ally.getMAX_HP(), Ally.getMAX_MP(),Ally.getMAX_MP());
+			System.out.printf("%d- %s %d/%d-HP  %d/%d-MP\n",(i+1),Ally.getNAME(),Ally.getHP(),Ally.getMAX_HP(), Ally.getMP(),Ally.getMAX_MP());
 		}
 		for(i--; (i-Allies.size()+1)<Enemies.size();i++) {
 			System.out.printf("%d- %s\n", (i+Allies.size()+1), Enemies.get(i).getNAME());

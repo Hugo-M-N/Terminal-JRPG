@@ -5,6 +5,10 @@ import game.entity.Entity;
 public class Potion extends Object{
 	PotionType TYPE;
 
+	public PotionType getPotionType() {
+		return TYPE;
+	}
+	
 	public Potion(String NAME, String DESC, PotionType type) {
 		super(NAME, DESC);
 		TYPE=type;
@@ -66,6 +70,8 @@ public class Potion extends Object{
 				target.setMP(target.getMP()+ (int)(target.getMAX_MP()*0.3)+1);
 				if(target.getMP()>target.getMAX_MP()) target.setMP(target.getMAX_MP());
 				this.remove();
+				break;
+			default:
 				break;
 		}
 	}

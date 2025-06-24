@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import game.object.Object;
 import game.skill.DamageType;
 import game.skill.Skill;
+import game.utils.InputHelper;
 
 public class Entity {
 
@@ -34,7 +35,7 @@ public class Entity {
 	// Functions
 	
 	public void addSkill(Skill SKILL) {
-		this.Skills.add(SKILL);
+		Skills.add(SKILL);
 	}
 	
 	public void addToInventory(Object OBJ) {
@@ -49,105 +50,109 @@ public class Entity {
 		
 	}
 	
-	public void addXP(int XP) {
+	public String[] addXP(int XP) {
+		String[] result = {""};
 		this.XP += XP;
-		 this.LvlXP = (int) (this.LVL + 9 + (Math.pow(this.LVL, (this.LVL*0.05))));
+		 LvlXP = (int) (LVL + 9 + (Math.pow(LVL, (LVL*0.05))));
 		while(this.XP>=LvlXP) {
 			this.XP-=LvlXP;
-			LvlUp();
+			result = LvlUp();
 		}
+		
+		return result;
 	}
 	
-	public void LvlUp() {
-		this.LVL++;
-		System.out.printf("%s got lvl %d!\n",this.NAME, this.LVL);
+	public String[] LvlUp() {
+		ArrayList<String> result = new ArrayList<String>();
+		LVL++;
+		result.add(String.format("%s got lvl %d!",NAME, LVL));
 		int points= (int) (Math.random()*3)+1;
 		while(points>0) {
 			int Stat = (int) (Math.random()*12);
-			if(this.CLASS==EntityClass.WARRIOR) {
+			if(CLASS==EntityClass.WARRIOR) {
 				if(Stat<=4) {
-					this.STR++;
-					System.out.printf("%s's STR is now %d.\n", this.NAME, this.STR);
+					STR++;
+					result.add(String.format("%s's STR is now %d.", NAME, STR));
 				} else if(Stat<6) {
-					this.MAG++;
-					System.out.printf("%s's MAG is now %d.\n", this.NAME, this.MAG);
+					MAG++;
+					result.add(String.format("%s's MAG is now %d.", NAME, MAG));
 				} else if(Stat<=8) {
-					this.DEF++;
-					System.out.printf("%s's DEF is now %d.\n", this.NAME, this.DEF);
+					DEF++;
+					result.add(String.format("%s's DEF is now %d.", NAME, DEF));
 				} else {
-					this.DEX++;
-					System.out.printf("%s's DEX is now %d.\n", this.NAME, this.DEX);
+					DEX++;
+					result.add(String.format("%s's DEX is now %d.", NAME, DEX));
 				}
 				
-				this.MAX_HP = (int) (this.DEF * 0.25 * LVL);
-				this.HP = this.MAX_HP;
-				this.MAX_MP = (int) (this.MAG * 0.1 * LVL);
-				this.MP = this.MAX_MP;
+				MAX_HP = (int) (DEF * 0.25 * LVL);
+				HP = MAX_HP;
+				MAX_MP = (int) (MAG * 0.1 * LVL);
+				MP = MAX_MP;
 				
-			} else if(this.CLASS==EntityClass.MAGE) {
+			} else if(CLASS==EntityClass.MAGE) {
 				if(Stat<=1) {
-					this.STR++;
-					System.out.printf("%s's STR is now %d.\n", this.NAME, this.STR);
+					STR++;
+					result.add(String.format("%s's STR is now %d.", NAME, STR));
 				} else if(Stat<7) {
-					this.MAG++;
-					System.out.printf("%s's MAG is now %d.\n", this.NAME, this.MAG);
+					MAG++;
+					result.add(String.format("%s's MAG is now %d.", NAME, MAG));
 				} else if(Stat<=9) {
-					this.DEF++;
-					System.out.printf("%s's DEF is now %d.\n", this.NAME, this.DEF);
+					DEF++;
+					result.add(String.format("%s's DEF is now %d.", NAME, DEF));
 				} else {
-					this.DEX++;
-					System.out.printf("%s's DEX is now %d.\n", this.NAME, this.DEX);
+					DEX++;
+					result.add(String.format("%s's DEX is now %d.", NAME, DEX));
 				}
 				
-				this.MAX_HP = (int) (this.DEF * 0.1 * LVL);
-				this.HP = this.MAX_HP;
-				this.MAX_MP = (int) (this.MAG * 0.25 * LVL);
-				this.MP = this.MAX_MP;
+				MAX_HP = (int) (DEF * 0.1 * LVL);
+				HP = MAX_HP;
+				MAX_MP = (int) (MAG * 0.25 * LVL);
+				MP = MAX_MP;
 				
-			} else if(this.CLASS==EntityClass.CLERIC) {
+			} else if(CLASS==EntityClass.CLERIC) {
 				if(Stat<=1) {
-					this.STR++;
-					System.out.printf("%s's STR is now %d.\n", this.NAME, this.STR);
+					STR++;
+					result.add(String.format("%s's STR is now %d.", NAME, STR));
 				} else if(Stat<6) {
-					this.MAG++;
-					System.out.printf("%s's MAG is now %d.\n", this.NAME, this.MAG);
+					MAG++;
+					result.add(String.format("%s's MAG is now %d.", NAME, MAG));
 				} else if(Stat<=10) {
-					this.DEF++;
-					System.out.printf("%s's DEF is now %d.\n", this.NAME, this.DEF);
+					DEF++;
+					result.add(String.format("%s's DEF is now %d.", NAME, DEF));
 				} else {
-					this.DEX++;
-					System.out.printf("%s's DEX is now %d.\n", this.NAME, this.DEX);
+					DEX++;
+					result.add(String.format("%s's DEX is now %d.", NAME, DEX));
 				}
 				
-				this.MAX_HP = (int) (this.DEF * 0.15 * LVL);
-				this.HP = this.MAX_HP;
-				this.MAX_MP = (int) (this.MAG * 0.2 * LVL);
-				this.MP = this.MAX_MP;
+				MAX_HP = (int) (DEF * 0.15 * LVL);
+				HP = MAX_HP;
+				MAX_MP = (int) (MAG * 0.2 * LVL);
+				MP = MAX_MP;
 				
-			} else if(this.CLASS==EntityClass.ROGUE) {
+			} else if(CLASS==EntityClass.ROGUE) {
 				if(Stat<=4) {
-					this.STR++;
-					System.out.printf("%s's STR is now %d.\n", this.NAME, this.STR);
+					STR++;
+					result.add(String.format("%s's STR is now %d.", NAME, STR));
 				} else if(Stat<6) {
-					this.MAG++;
-					System.out.printf("%s's MAG is now %d.\n", this.NAME, this.MAG);
+					MAG++;
+					result.add(String.format("%s's MAG is now %d.", NAME, MAG));
 				} else if(Stat<=7) {
-					this.DEF++;
-					System.out.printf("%s's DEF is now %d.\n", this.NAME, this.DEF);
+					DEF++;
+					result.add(String.format("%s's DEF is now %d.", NAME, DEF));
 				} else {
-					this.DEX++;
-					System.out.printf("%s's DEX is now %d.\n", this.NAME, this.DEX);
+					DEX++;
+					result.add(String.format("%s's DEX is now %d.", NAME, DEX));
 				}
 				
-				this.MAX_HP = (int) (this.DEF * 0.15 * LVL);
-				this.HP = this.MAX_HP;
-				this.MAX_MP = (int) (this.MAG * 0.15 * LVL);
-				this.MP = this.MAX_MP;
+				MAX_HP = (int) (DEF * 0.15 * LVL);
+				HP = MAX_HP;
+				MAX_MP = (int) (MAG * 0.15 * LVL);
+				MP = MAX_MP;
 				
 			}
-			if(!(this.MAX_HP>0)) {
-				this.MAX_HP++;
-				this.HP = this.MAX_HP;
+			if(!(MAX_HP>0)) {
+				MAX_HP++;
+				HP = MAX_HP;
 			}
 			points--;
 		}
@@ -157,25 +162,47 @@ public class Entity {
 		 * 
 		 * */
 		// Test
-		if(this.LVL==5) Skills.add(new Skill("Test Skill", 2, DamageType.STR, 2));
+		if(LVL==5) {
+			Skills.add(new Skill("Test Skill", 2, DamageType.STR, 2));
+			result.add("You unlocked: Test Skill");
+		}
+		
+		return (String[]) result.toArray(new String[0]);
 	}
 	
-	public void stats() {
-		// Clear terminal
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
+	public String[] stats() {
+		String healthBar ="";
+		String manaBar ="";
 		
-		System.out.println("\033[40m\033[37m_________________________");
-		System.out.println("Stats\n");
-		System.out.println("Name: "+ this.NAME);
-		System.out.println("Class: "+ this.CLASS);
-		System.out.println("Lvl: "+ this.LVL+ "   " + this.XP + "/" + this.LvlXP + "XP" + "   \033[33mG:"+this.GOLD);
-		System.out.print("\033[31mHP "+ this.HP+"/"+this.MAX_HP + "   \033[34mMP "+ this.MP+"/"+this.MAX_MP + "\n\033[37m");
-		System.out.println("STR: "+ this.STR);
-		System.out.println("MAG: "+ this.MAG);
-		System.out.println("DEF: "+ this.DEF);
-		System.out.println("DEX: "+ this.DEX);
-		System.out.println("_________________________\033[0m");
+		healthBar+="\033[42m";
+		for(int i=0;i<((double)HP/(double)MAX_HP)*20;i++) healthBar+= " ";
+		healthBar+="\033[41m";
+		for(int i=0;i<(((double)MAX_HP-(double)HP)/(double)MAX_HP)*20; i++) healthBar +=" ";
+		
+		if(MAX_MP>=1) {
+			manaBar+="\033[44m";
+			for(int i=0;i<((double)MP/(double)MAX_MP)*20;i++) manaBar+=" ";
+			manaBar+="\033[47m";
+			for(int i=0;i<(((double)MAX_MP-(double)MP)/(double)MAX_MP)*20; i++) manaBar+=" ";			
+		} else for(int i=0;i<20; i++) System.out.print("m");
+		
+		String[] menu = {
+				"_________________________",
+				"Stats",
+				"",
+				"Name: "+ NAME,
+				"Class: "+ CLASS,
+				"Lvl: "+ LVL+ "   " + XP + "/" + LvlXP + "XP" + "   G:"+GOLD,
+				"HP "+ HP+"/"+MAX_HP + "  " + healthBar + "\033[0m" ,
+				"MP "+ MP+"/"+MAX_MP +"  " + manaBar + "\033[0m",
+				"STR: "+ STR,
+				"MAG: "+ MAG,
+				"DEF: "+ DEF,
+				"DEX: "+ DEX,
+				"_________________________"
+		};
+		
+		return menu;
 	}
 	
 	// Getters & Setters

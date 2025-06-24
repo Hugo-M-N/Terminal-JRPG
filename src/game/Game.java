@@ -1,6 +1,7 @@
 package game;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -12,31 +13,35 @@ import game.object.Potion;
 import game.object.PotionType;
 import game.skill.DamageType;
 import game.skill.Skill;
+import game.utils.InputHelper;
 
 public class Game {
 	static String directoryURL = System.getProperty("user.home") + "/Terminal_JRPG/";
 	static File directory = new File(directoryURL);
 
 	static Scanner sc = new Scanner(System.in);
+	static ScreenBuffer BUFFER = new ScreenBuffer();
+	
+	static ArrayList<String> ExploreOptions = new ArrayList<String>();
+	
+	static ArrayList<Boolean> SpecialEvents= new ArrayList<Boolean>();
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException, InterruptedException {
+		
 		if (!directory.exists()) {
 			directory.mkdir();
 		}
 		boolean GAME = true;
-		String[] options = { "Search", "Status", "Skills", "Inventory", "Save/Load/Exit" };
-		int sel = 0;
 		ArrayList<Entity> Allies = null;
+		ExploreOptions.add("Go back");
 
 		boolean invalid = true;
 		while (invalid) {
 			// Clear Terminal
-			System.out.print("\033[H\033[2J");
-			System.out.flush();
+			InputHelper.clearScreen();
 			
 			// Game start
-			Welcome();
-			switch (MainMenu()) {
+			switch (Menus.MainMenu()) {
 			case "New Game":
 				// Create Character
 				Allies = NewStart();
@@ -44,72 +49,84 @@ public class Game {
 				break;
 			case "Load Game":
 				// Load Game
-				Allies = LoadMenu();
+				Allies = Menus.LoadMenu();
 				if (Allies != null) {
 					invalid = false;
 				}
 				break;
 			case "Exit Game":
 				// Exit
+				if(Menus.confirmExit()==1) return;
+				else invalid = true;
+				break;
+				
+			default:
+				// Exit
 				invalid = false;
 				return;
 			}
 		}
 
+		//Special Events
+		SpecialEvents.add(true); // it's the first time you explore
+		SpecialEvents.add(true); // first time in the forest
+		SpecialEvents.add(true); // King goblin
+		SpecialEvents.add(true); // first time in the shop
+		
+
+		
 		while (GAME) {
-			while (!(sel >= 1 && sel <= options.length)) {
-				Menu(options);
-				try {
-					sel = Integer.valueOf(sc.nextLine());
+			InputHelper.clearScreen();
+			
+			for(String s : BUFFER.getScreenBuffer()) System.out.println(s);
 
-				} catch (Exception e) {
-					System.out.println("Invalid selection.");
-				}
-			}
+			
+			String option = Menus.mainGameMenu();
+			
+			switch (option) {
 
-			// Clear terminal
-			System.out.print("\033[H\033[2J");
-			System.out.flush();
-
-			switch (options[(sel - 1)]) {
-
-			case "Search":
-				Search(Allies);
+			case "Explore":
+				BUFFER.clearBuffer();
+				Explore(Allies);
 				break;
 
 			case "Status":
-				Allies.get(0).stats();
+				BUFFER.clearBuffer();
+				String[] stats = Allies.get(0).stats();
+				for(String s : stats) BUFFER.addToBuffer(s);
 				break;
 			case "Skills":
-				SkillList(Allies.get(0));
+				BUFFER.clearBuffer();
+				for(String s : Menus.SkillList(Allies.get(0))) BUFFER.addToBuffer(s);
 				break;
 
 			case "Inventory":
-				ObjectList(Allies.get(0));
+				BUFFER.clearBuffer();
+				for(String s : Menus.ObjectList(Allies.get(0))) BUFFER.addToBuffer(s);;
 				break;
 
-			case "Save/Load/Exit":
-				switch (SaveLoadExitMenu()) {
-				case 1:
-					boolean saved = SaveManager.SaveGame(Allies, Allies.get(0).getNAME());
-					if (saved) {
-						System.out.println("Gave saved");
-						
-					} else {
-						System.out.println("Some error happend.");
-					}
+			case "Menu":
+				BUFFER.clearBuffer();
+				switch (Menus.SaveLoadExitMenu()) {
+				case "Options":
 					break;
-				case 2:
-					ArrayList<Entity> Load = LoadMenu();
+				
+				case "Save game":
+					boolean saved = SaveManager.SaveGame(Allies, Allies.get(0).getNAME());
+					if (saved) BUFFER.printAnimatedMessage("Game saved");	
+					else BUFFER.printAnimatedMessage("Some error happend.");
+
+					break;
+				case "Load game":
+					ArrayList<Entity> Load = Menus.LoadMenu();
 					if(Load!=null) {
 						Allies = Load;
+						BUFFER.clearBuffer();
 					}
 					break;
-				case 3:
-					System.out.println("Unsaved progress will be lost, Are you sure you want to exit?");
-					System.out.print("Selection (Y/N -default): ");
-					String exit = sc.nextLine();
-					if(exit.equalsIgnoreCase("y")) GAME = false;
+				case "Exit game":
+					
+					if(Menus.confirmExit()==1) GAME = false;
 					break;
 					
 				default:
@@ -120,88 +137,61 @@ public class Game {
 			default:
 				break;
 			}
-
-			sel = 0;
-
+			
 		}
-
 	}
 
-	private static void Welcome() {
-		String logo = "\033[40m\033[31m_________ _______  _______  _______ _________ _        _______  _            _________ _______  _______  _______ \r\n"
-				+ "\\__   __/(  ____ \\(  ____ )(       )\\__   __/( (    /|(  ___  )( \\           \\__    _/(  ____ )(  ____ )(  ____ \\\r\n"
-				+ "   ) (   | (    \\/| (    )|| () () |   ) (   |  \\  ( || (   ) || (              )  (  | (    )|| (    )|| (    \\/\r\n"
-				+ "   | |   | (__    | (____)|| || || |   | |   |   \\ | || (___) || |              |  |  | (____)|| (____)|| |      \r\n"
-				+ "   | |   |  __)   |     __)| |(_)| |   | |   | (\\ \\) ||  ___  || |              |  |  |     __)|  _____)| | ____ \r\n"
-				+ "   | |   | (      | (\\ (   | |   | |   | |   | | \\   || (   ) || |              |  |  | (\\ (   | (      | | \\_  )\r\n"
-				+ "   | |   | (____/\\| ) \\ \\__| )   ( |___) (___| )  \\  || )   ( || (____/\\     |\\_)  )  | ) \\ \\__| )      | (___) |\r\n"
-				+ "   )_(   (_______/|/   \\__/|/     \\|\\_______/|/    )_)|/     \\|(_______/_____(____/   |/   \\__/|/       (_______)\r\n"
-				+ "                                                                       (_____)                                   \033[0m";
-		System.out.println(logo);
-	}
+	private static ArrayList<Entity> NewStart() throws InterruptedException {
+		InputHelper.clearScreen();
 
-	private static String MainMenu() {
-		String[] options = { "New Game", "Load Game", "Exit Game" };
-		System.out.println("_________________________");
-		System.out.println("Main Menu");
-		for (int i = 0; i < options.length; i++) {
-			System.out.println((i + 1) + "- " + options[i]);
-		}
-		System.out.println("_________________________");
-		int sel = 0;
-		while (!(sel > 0 && sel <= options.length)) {
-			System.out.print("Selection: ");
-			try {
-				sel = Integer.valueOf(sc.nextLine());
-			} catch (Exception e) {
-			}
-		}
-		return options[sel - 1];
-	}
-
-	private static ArrayList<Entity> NewStart() {
-		// clear terminal
-		System.out.print("\033[H\033[2J");
-		System.out.flush();
-
-		System.out.println("Welcome to Terminal_JRPG.");
-		System.out.println("This game is a turn based game inspired by the classic JRPG's.");
-		System.out.println("Hope you have fun!\n");
-		System.out.println("Let's create your character.");
-		System.out.println("What's your name? (Max 50 char)");
+		BUFFER.clearBuffer();
+		
+		BUFFER.printAnimatedMessage("Welcome to Terminal_JRPG.");
+		BUFFER.printAnimatedMessage("This game is a turn based game inspired by the classic JRPG's.");
+		BUFFER.printAnimatedMessage("Hope you have fun!");
+		BUFFER.printAnimatedMessage("Let's create your character.");
+		BUFFER.printAnimatedMessage("What's your name? (Max 50 char)");
+				
+		InputHelper.enableTextMode();
+		
 		String Name = "";
 		while (!(Name.length() > 0 && Name.length() <= 50)) {
-			System.out.print("Name: ");
+			System.out.print("\033[23;2HName: ");
 			Name = sc.nextLine();
 			if (!(Name.length() > 0 && Name.length() <= 50)) {
-				System.out.println("Enter a valid name.");
+				BUFFER.printAnimatedMessage("Enter a valid name.");
 			}
 		}
-		// clear terminal
-		System.out.print("\033[H\033[2J");
-		System.out.flush();
-
-		System.out.println("There`s 4 main stats, STR, MAG, DEF, DEX");
-		System.out.println("Strength (STR): Fisical damage.");
-		System.out.println("Magic (MAG): Magical damage and magic points (MP).");
-		System.out.println("Defense (DEF): Damage reduction and max health points (HP)");
-		System.out.println("Dexterity (DEX): Speed and critic attacks");
-		System.out.println("Choose your class:");
+		BUFFER.addToBuffer("Name: " + Name);
+		
+		InputHelper.clearScreen();
+		
+		BUFFER.printAnimatedMessage("\033[0m");
+		BUFFER.printAnimatedMessage("There`s 4 main stats, STR, MAG, DEF, DEX");
+		BUFFER.printAnimatedMessage("Strength (STR): Fisical damage.");
+		BUFFER.printAnimatedMessage("Magic (MAG): Magical damage and magic points (MP).");
+		BUFFER.printAnimatedMessage("Defense (DEF): Damage reduction and max health points (HP)");
+		BUFFER.printAnimatedMessage("Dexterity (DEX): Speed and critic attacks");
+		BUFFER.printAnimatedMessage("Choose your class:");
+		
 		int CSEL = -1;
 		String[] CLASSES = { "Warrior +(DEF,STR) -(MAG,DEX)", "Mage +(MAG) -(STR,DEF)", "Cleric +(MAG,DEF) -(STR,DEX)",
 				"Rogue +(DEX, STR) -(DEF, MAG)" };
 		EntityClass PClass = null;
 		while (!(CSEL > 0 && CSEL <= 4)) {
-			System.out.println("CLASSES");
+			BUFFER.printAnimatedMessage("CLASSES");
 			for (int i = 0; i < CLASSES.length; i++) {
-				System.out.println((i + 1) + "-" + CLASSES[i]);
+				BUFFER.printAnimatedMessage((i + 1) + "-" + CLASSES[i]);
 			}
+			
+			InputHelper.enableTextMode();
+			
 			while (!(CSEL >= 1 && CSEL <= 4)) {
-				System.out.print("SEL: ");
+				System.out.print("\033[23;2HSEL: ");
 				try {
 					CSEL = Integer.valueOf(sc.nextLine());
 				} catch (Exception e) {
-					System.out.println("Invalid selection.");
+					BUFFER.printAnimatedMessage("Invalid selection.");
 				}
 			}
 
@@ -209,19 +199,23 @@ public class Game {
 
 			case 1:
 				PClass = EntityClass.WARRIOR;
+				BUFFER.printAnimatedMessage("Class selected: Warrior");
 				break;
 			case 2:
 				PClass = EntityClass.MAGE;
+				BUFFER.printAnimatedMessage("Class selected: Mage");
 				break;
 			case 3:
 				PClass = EntityClass.CLERIC;
+				BUFFER.printAnimatedMessage("Class selected: Cleric");
 				break;
 			case 4:
 				PClass = EntityClass.ROGUE;
+				BUFFER.printAnimatedMessage("Class selected: Rogue");
 				break;
 
 			default:
-				System.out.println("Invalid selection, try again.");
+				BUFFER.printAnimatedMessage("Invalid selection, try again.");
 			}
 		}
 		Entity Player = new Entity(Name, PClass, 1);
@@ -230,50 +224,6 @@ public class Game {
 		Allies.add(Player);
 
 		return Allies;
-	}
-
-	private static ArrayList<Entity> LoadMenu() {
-		ArrayList<Entity> Allies = new ArrayList<Entity>();
-		File directory = new File(SaveManager.directoryURL);
-		SaveManager.CheckSaveDirectory();
-		File[] saves = directory.listFiles();
-		int sel = 0;
-		if (saves == null) {
-			System.out.println("There's no saves yet.");
-			return null;
-		}
-
-		while (!(sel > 0 && sel <= saves.length)) {
-			System.out.println("_________________________");
-			System.out.println("Load Menu\n");
-			for (int i = 0; i < saves.length; i++) {
-				String name = (saves[i].getName());
-				System.out.println((i + 1) + "- " + name);
-			}
-			System.out.println("_________________________");
-			System.out.println("1- Select load | 2- go back");
-			System.out.print("Selection: ");
-			int sel2 = Integer.valueOf(sc.nextLine());
-			if(sel2==1) {				
-				try {
-					System.out.print("Select load: ");
-					sel = Integer.valueOf(sc.nextLine());
-					Allies = SaveManager.LoadGame(saves[(sel - 1)].getName());
-				} catch (Exception e) {
-				}
-			} else {
-				return null;
-			}
-		}
-
-		return Allies;
-	}
-
-	private static void Menu(String[] options) {
-		for (int i = 0; i < options.length; i++) {
-			System.out.printf(" %d-%s |", (i + 1), options[i]);
-		}
-		System.out.print("\nSelection: ");
 	}
 
 	private static void Search(ArrayList<Entity> Allies) {
@@ -289,9 +239,8 @@ public class Game {
 			// Test 1vs1
 			boolean Losed = false;
 			ArrayList<Entity> Enemies = new ArrayList<Entity>();
-			Enemies.add(
-					new Entity("Test Enemy", EntityClass.WARRIOR, (int) (Math.random() * Allies.get(0).getLVL()) + 1));
-			Combat comb = new Combat(Allies, Enemies);
+			Enemies.add(new Entity("Test Enemy", EntityClass.WARRIOR, (int) (Math.random() * Allies.get(0).getLVL()) + 1));
+			Combat comb = new Combat(Allies, Enemies, BUFFER);
 			for (Entity Ally : Allies) {
 				if (Ally.getHP() <= 0) {
 					Losed = true;
@@ -326,41 +275,73 @@ public class Game {
 
 	}
 
-	private static void SkillList(Entity entity) {
-		ArrayList<Skill> Skills = entity.getSkills();
-		System.out.println("_______________________");
-		System.out.println("Skills\n");
-		for (int i = 0; i < Skills.size(); i++) {
-			System.out.println((i + 1) + "- " + Skills.get(i).getNAME());
+	private static void Explore(ArrayList<Entity> Allies) throws InterruptedException {
+		BUFFER.printAnimatedMessage("");
+		
+		if(SpecialEvents.get(0)) {
+			BUFFER.printAnimatedMessage("You look around, you don't recognize anything. Actually, you don't know "
+			+ "anything, you \"understand\" basic concepts like yourself, your name and how some things are called, "
+			+ "but you can't remember more than a few minutes ago when you opened your eyes. So you don't know from "
+			+ "where that knoledge came from. You start to walk and two things caught your eye, a forest and a small "
+			+ "village.");
+			
+			ExploreOptions.add("Forest");
+			ExploreOptions.add("Village");
+			SpecialEvents.set(0, false);
 		}
-		System.out.println("_______________________");
-
-	}
-
-	private static void ObjectList(Entity entity) {
-		ArrayList<Object> Objects = entity.getInventory();
-		if (Objects.size() >= 1) {
-			System.out.println("_______________________");
-			System.out.println("Inventory\n");
-			System.out.printf("  %15s  %2s  %s\n", "Name", "nº", "Description");
-			for (Object obj : Objects) {
-				System.out.printf("- %15s  %2s  %s\n", obj.getNAME(), obj.getAMOUNT(), obj.getDESC());
+		
+		switch(Menus.Menu(ExploreOptions)) {
+			case "Go back":
+				BUFFER.printAnimatedMessage("You sat down.");
+				break;
+			case "Forest":
+				ArrayList<Entity> Enemies = new ArrayList<Entity>();
+				boolean Losed=false;
+				if(SpecialEvents.get(1)) {
+					BUFFER.printAnimatedMessage("You walk into the forest, after some time you realize the forest is quiet, too quiet. "
+							+ "You don't hear anything, this shouldn't be like this, right? You keep walking and some trees with "
+							+ "marks start to appear, suddenly you hear a high pitched chirp and something jumps towards you.");
+					
+					Enemies.add(new Entity("Goblin", EntityClass.WARRIOR, 1));
+					Combat comb = new Combat(Allies, Enemies, BUFFER);
+					for(String s : comb.getResult()) BUFFER.addToBuffer(s);
+				} else if(SpecialEvents.get(2) && Allies.get(0).getLVL()>=7){
+					Enemies.add(new Entity("King Goblin", EntityClass.WARRIOR, 10));
+					Combat comb = new Combat(Allies, Enemies, BUFFER);	
+					for(String s : comb.getResult()) BUFFER.addToBuffer(s);
+				} else {
+					Enemies.add(new Entity("Goblin", EntityClass.WARRIOR, (int) (Math.random() * 3) + 1));
+					Combat comb = new Combat(Allies, Enemies, BUFFER);
+					for(String s : comb.getResult()) BUFFER.addToBuffer(s);
+				}
+				
+				for (Entity Ally : Allies) {
+					if (Ally.getHP() <= 0) {
+						Losed = true;
+					}
+				}
+				
+				if(!Losed && SpecialEvents.get(1)) {
+					SpecialEvents.set(1, false);
+					SpecialEvents.set(2, true);
+				} else if(!Losed && SpecialEvents.get(2) && SpecialEvents.get(1)==false) SpecialEvents.set(2, false);
+				
+				if (Losed) {
+					Allies.get(0).setHP(1);
+					int G = Allies.size() * 10;
+					if (Allies.get(0).getGOLD() > G)
+						Allies.get(0).setGOLD(Allies.get(0).getGOLD() - G);
+					else
+						Allies.get(0).setGOLD(0);
+					BUFFER.printAnimatedMessage("You lost some gold while you where unconscious.");
+				
 			}
-			System.out.println("_______________________");
-		} else
-			System.out.println("You don't have anything yet...");
+				
+				break;
+			case "Village":
+				break;
+			default:
+				break;
+		}
 	}
-
-	private static int SaveLoadExitMenu() {
-		System.out.print("\033[H\033[2J");
-		System.out.flush();
-
-		System.out.println("_______________________");
-		System.out.println("Menu");
-		System.out.println("1- Save game\n2- Load game\n3- Exit\n4- Go back");
-		System.out.println("_______________________");
-		System.out.print("Selection: ");
-		return Integer.valueOf(sc.nextLine());
-	}
-
 }

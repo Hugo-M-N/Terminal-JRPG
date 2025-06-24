@@ -3,55 +3,63 @@ package game.combat;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import game.Menus;
+import game.ScreenBuffer;
 import game.entity.Entity;
 import game.object.Object;
 import game.skill.DamageType;
 import game.skill.Skill;
+import game.utils.InputHelper;
 
 public class Combat {	
 	String[] options= {"Attack","Defend","Skills","Objects","Exit"};
 	boolean combat = true;
+	String[] Result = null;
+	static ScreenBuffer CBUFFER;
+	
+	public String[] getResult() {
+		return Result;
+	}
 	
 	Scanner sc = new Scanner(System.in);
-	public Combat(ArrayList<Entity> Allies, ArrayList<Entity> Enemies) {
+	public Combat(ArrayList<Entity> Allies, ArrayList<Entity> Enemies, ScreenBuffer BUFFER) {
 		int ASel = 0, ESel=0;
+		String[] result = null;
+		CBUFFER = BUFFER;
 		
 		while(combat) {
-			
+			InputHelper.clearScreen();
+			for(String s : CBUFFER.getScreenBuffer()) System.out.println(s);
+
 			// Ally turn
 			for(Entity Ally : Allies) {
 				if(Ally.getT_COUNT()>=100 && Ally.getHP()>0) {
 					Ally.setT_COUNT(Ally.getT_COUNT()-100);
 					Ally.setIsDef(false);
-					while(!(ASel>=1 && ASel<=options.length)) {
-					Menu(options, Allies, Enemies, Ally);
-						try {
-							ASel = Integer.valueOf(sc.nextLine());							
-						} catch (Exception e) {
-							System.out.println("Invalid selection.");
-						}
-					}
+					for(String s : Menus.combatMenu(Allies, Enemies, Ally)) CBUFFER.updateBuffer(s);
 					
-					// Clear terminal
-			        System.out.print("\033[H\033[2J");
-			        System.out.flush();
+					//Print Screen
+					InputHelper.clearScreen();
+					for(String s : CBUFFER.getScreenBuffer()) System.out.println(s);
 			        
-					switch(ASel) {
-						case 1:
+					switch(Menus.Menu(options)) {
+						case "Attack":
 							Attack(Ally, Enemies, false);
 							break;
-						case 2:
+						case "Defend":
 							Defend(Ally);
 							break;
-						case 3:
+						case "Skills":
 							Skills(Ally, Allies, Enemies, false);
 							break;
-						case 4:
+						case "Objects":
 							Objects(Ally, Allies,Enemies, false);
 							break;
+						case "Exit":
+							Result = new String[] {"You ran away."};
+							return;
 					}
-					if(options[ASel-1].equals("Exit")) return;
-					ASel=0;
+					
 				}
 			}
 		
@@ -60,7 +68,9 @@ public class Combat {
 				if(Enemy.getT_COUNT()>=100 && Enemy.getHP()>0){
 					Enemy.setT_COUNT(Enemy.getT_COUNT()-100);
 					Enemy.setIsDef(false);
-					System.out.printf(Enemy.getNAME()+"'s turn\n");
+					CBUFFER.addToBuffer(Enemy.getNAME()+"'s turn");
+					InputHelper.clearScreen();
+					for(String s : CBUFFER.getScreenBuffer()) System.out.println(s);
 					int EOptions=3;
 					if(Enemy.getSkills().size()<1) EOptions--;
 					if(Enemy.getInventory().size()<1) EOptions--;
@@ -95,46 +105,28 @@ public class Combat {
 			switch(checkCombat(Allies,Enemies)) {
 			
 				case 1:
-					winCombat(Allies,Enemies);
 					combat=false;
+					result = winCombat(Allies,Enemies);
 					break;
 				case 2:
-					System.out.println("You Lose.");
-					System.out.println("You won`t gain any XP or gold.");
 					combat=false;
+					result = new String[] {"You Lose.", "You won`t gain any XP or gold."};
 					break;
 				default:
 					break;
 			}
 		}
+		Result = result;
 	}
 	
 	// Functions
 	
-	private static void Menu(String[] options, ArrayList<Entity> Allies, ArrayList<Entity> Enemies, Entity turn) {
-		System.out.println("___________________________________");
-		for(Entity Enemy : Enemies) {
-			System.out.printf("%s: \033[31m%d/%d-HP\033[0m | ", Enemy.getNAME(), Enemy.getHP(), Enemy.getMAX_HP());
-		}
-		System.out.println("\n");
-		for(Entity Ally : Allies) {
-			System.out.printf("%s: \033[31m%d/%d-HP\033[0m \033[34m%d/%d-MP\033[0m\n", Ally.getNAME(), Ally.getHP(), Ally.getMAX_HP(), Ally.getMP(), Ally.getMAX_MP());
-		}
-		
-		// Turn
-		System.out.println("\n"+ turn.getNAME()+"'s turn:");
-		
-		// Display options
-		for(int i=0; i<options.length; i++) {
-			System.out.printf(" %d-%s |", (i+1), options[i]);
-		}
-		System.out.print("\nSelection: ");
-	}
-	
 	private static void DisplayEntities(ArrayList<Entity> Entities) {
 		for(int i=0; i<Entities.size();i++) {
-			System.out.printf("%d- %s \\033[31m%d/%d-HP\\033[0m\n",(i+1),Entities.get(i).getNAME(), Entities.get(i).getHP(), Entities.get(i).getMAX_HP());
+			CBUFFER.addToBuffer(String.format("%d- %s \\033[31m%d/%d-HP\\033[0m",(i+1),Entities.get(i).getNAME(), Entities.get(i).getHP(), Entities.get(i).getMAX_HP()));
 		}
+		InputHelper.clearScreen();
+		for(String s : CBUFFER.getScreenBuffer()) System.out.println(s);
 	}
 	
 	private static int checkCombat(ArrayList<Entity> Allies, ArrayList<Entity> Enemies) {
@@ -159,7 +151,7 @@ public class Combat {
 		return 0;
 	}
 	
-	private static void winCombat(ArrayList<Entity> Allies, ArrayList<Entity> Enemies) {
+	private static String[] winCombat(ArrayList<Entity> Allies, ArrayList<Entity> Enemies) {
 		int EnemiesLvl=0;
 		float XP;
 		int gold=0;
@@ -171,19 +163,26 @@ public class Combat {
 		EnemiesLvl = (EnemiesLvl/Enemies.size());
 		XP = (EnemiesLvl*0.3f+Enemies.size()*0.7f);
 		
-		System.out.println("You earn " + gold + " G.");
-		System.out.println("Each Ally got "+ (int) Math.round(XP/Allies.size()) + " XP.");
+		String g = "You earn " + gold + " G.";
+		String xp = "Each Ally got "+ (int) Math.round(XP/Allies.size()) + " XP.";
+		ArrayList<String> result = new ArrayList<String>();
+		result.add(g);
+		result.add(xp);
 		
 		for(Entity Ally : Allies) {
-			Ally.addXP(((int) Math.round(XP/Allies.size())));
+			String[] info = Ally.addXP(((int) Math.round(XP/Allies.size())));
+			for(String s : info) result.add(s);
 		}
+		
+		
+		return result.toArray(new String[0]);
 		
 	}
 	
 	private void Attack(Entity Attaker, ArrayList<Entity> Enemies, boolean isEnemy) {
 		Entity Enemy = null;
 		if(!isEnemy){		
-			Enemy = SelectTarget(Enemies);
+			Enemy = Menus.SelectTarget(Enemies);
 		} else {
 			if(Enemies.size()>1) {
 				Enemy= Enemies.get((int) Math.random()*Enemies.size());
@@ -195,50 +194,36 @@ public class Combat {
 		if(Enemy.isDef()) dmg = dmg/2;
 		
 		Enemy.setHP(Enemy.getHP()-dmg);
-		System.out.println(Enemy.getNAME()+" recieved "+ dmg+ " dmg.");	
+		CBUFFER.addToBuffer(Enemy.getNAME()+" recieved "+ dmg+ " dmg.");	
+		InputHelper.clearScreen();
+		for(String s : CBUFFER.getScreenBuffer()) System.out.println(s);
 	}
 	
 	private void Defend(Entity Defender) {
 		Defender.setIsDef(true);
-		System.out.printf("%s is defending.\n",Defender.getNAME());
+		CBUFFER.addToBuffer(String.format("%s is defending.",Defender.getNAME()));
+		InputHelper.clearScreen();
+		for(String s : CBUFFER.getScreenBuffer()) System.out.println(s);
 	}
 	
 	private void Skills(Entity Caster,  ArrayList<Entity> Allies, ArrayList<Entity> Enemies, boolean isEnemy) {
-		ArrayList<Skill> Skills = Caster.getSkills();
 		if(!isEnemy) {
-			System.out.println("Select a skill\n");
-			int SSel=-1;
-			while (!(SSel>-1 && SSel<Skills.size())) {
-				for (int i=0; i<Skills.size(); i++) {
-					System.out.printf("%d- %s %d-MP\n", (i+1), Skills.get(i).getNAME(), Skills.get(i).getCOST());
+			Skill selected = Menus.SkillMenu(Caster.getSkills());
+			if(selected!=null && Caster.getMP()>=selected.getCOST()){
+				Entity target = (selected.getDMG()>0) ? Menus.SelectTarget(Enemies) : Menus.SelectTarget(Allies, Enemies);
+				switch(selected.getDamageType()) {
+					case STR:
+						selected.Use(target, Caster.getSTR());
+						break;
+					case MAG:
+						selected.Use(target, Caster.getMAG());
+						break;
+					case DEX:
+						selected.Use(target, Caster.getDEX());
+						break;
 				}
-				System.out.print("Selection: ");
-				try {
-					SSel = Integer.valueOf(sc.nextLine());
-					SSel--;
-				} catch(Exception e) {
-					SSel=-1;
-					System.out.println("Invalid selection.");
-				}	
-			}
-			Skill skill = Skills.get(SSel);
-			Entity Enemy = SelectTarget(Enemies);
-			if(Caster.getMP()>=skill.getCOST()) {
-				Caster.setMP(Caster.getMP()-skill.getCOST());
-				System.out.printf("%s used %s on %s\n", Caster.getNAME(), skill.getNAME(), Enemy.getNAME());
-				switch(skill.getDamageType()) {
-				case DamageType.STR:
-					skill.Use(Enemy, Caster.getSTR());
-					break;
-				case DamageType.MAG:
-					skill.Use(Enemy, Caster.getMAG());
-					break;
-				case DamageType.DEX:
-					skill.Use(Enemy, Caster.getDEX());
-					break;				
-				} 
-			} else {
-				System.out.println("You don't have enought MP.");
+				Caster.setMP(Caster.getMP()-selected.getCOST());
+				CBUFFER.addToBuffer(Caster.getNAME() + " used " + selected.getNAME() + " on " + target.getNAME());
 			}
 		} else {
 			// To-do: implement when enemy use a skill
@@ -255,29 +240,21 @@ public class Combat {
 		if(!isEnemy){
 			objects = Allies.get(0).getInventory();
 			if(objects.size()>=1) {
-				System.out.println("_______________________");
-				System.out.println("Inventory\n");
-				System.out.printf("  %15s  %2s  %s\n","Name","nº", "Description");
-				for(int i=0; i<objects.size();i++) {
-					System.out.printf("%d- %15s  %2s  %s\n",(i+1),objects.get(i).getNAME(),objects.get(i).getAMOUNT(),objects.get(i).getDESC());
-				}
-				System.out.println("_______________________");
-				while(!(OSel>=0 && OSel<objects.size())) {
-					System.out.print("Selection: ");
-					try {
-						OSel = Integer.valueOf(sc.nextLine());
-						OSel--;
-					} catch(Exception e) {
-						OSel=-1;
-						System.out.println("Invalid selection.");
-					}
+				Object selected = Menus.ObjectMenu(Allies.get(0).getInventory());
+				if(selected!=null && selected.getAMOUNT()>=1) {
+					Entity target = Menus.SelectTarget(Allies, Enemies);
+					selected.Use(target);
+					selected.setAMOUNT(selected.getAMOUNT()-1);
+					CBUFFER.addToBuffer(Caster.getNAME() + " used " + selected.getNAME() + " on " + target.getNAME());
 				}
 			} else {
-				System.out.println("You don't have anything yet...");
+				CBUFFER.addToBuffer("You don't have anything yet...");
+				InputHelper.clearScreen();
+				for(String s : CBUFFER.getScreenBuffer()) System.out.println(s);
 				return;
 			}
 			
-			Enemy = SelectTarget(Allies,Enemies);
+			Enemy = Menus.SelectTarget(Allies,Enemies);
 			
 			objects.get(OSel).Use(Enemy);
 			System.out.println();
@@ -290,61 +267,6 @@ public class Combat {
 		}
 		
 	}
-	
-	private Entity SelectTarget(ArrayList<Entity> Enemies) {
-		Entity Enemy;
-		if(Enemies.size()>1) {
-			System.out.println("Targets:\n");
-			DisplayEntities(Enemies);
-			int sel=0;
-			while(!(sel>=1 && sel<=Enemies.size())) {
-				System.out.print("Select Enemy: ");
-				try {
-					sel = Integer.valueOf(sc.nextLine());								
-				} catch (Exception e) {
-					System.out.println("Invalid target.");
-				}
-				
-			}
-			Enemy = Enemies.get((sel-1));			
-		} else {
-			Enemy = Enemies.get(0);
-		}
-		
-		return Enemy;
-	}
-	
-	private Entity SelectTarget(ArrayList<Entity> Allies, ArrayList<Entity> Enemies) {
-		Entity target;
-		System.out.println("Targets:\n");
-		int i;
-		for(i=0;i<Allies.size();i++) {
-			Entity Ally = Allies.get(i);
-			System.out.printf("%d- %s %d/%d-HP  %d/%d-MP\n",(i+1),Ally.getNAME(),Ally.getHP(),Ally.getMAX_HP(), Ally.getMP(),Ally.getMAX_MP());
-		}
-		for(i--; (i-Allies.size()+1)<Enemies.size();i++) {
-			System.out.printf("%d- %s\n", (i+Allies.size()+1), Enemies.get(i).getNAME());
-		}
-		int TSel=-1;
-		while(!(TSel>=0 && TSel<(Allies.size()+Enemies.size()))) {
-			System.out.print("Select target: ");
-			try {
-				TSel = Integer.valueOf(sc.nextLine());
-				TSel--;
-			} catch (Exception e) {
-				TSel=-1;
-				System.out.println("Invalid target.");
-			}
-		}
-		
-		if(TSel<Allies.size()) {
-			target = Allies.get(TSel);
-		} else {
-			TSel = TSel-Allies.size();
-			target = Enemies.get(TSel);
-		}
-		
-		return target;
-	}
+
 	
 }

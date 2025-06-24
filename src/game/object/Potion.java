@@ -2,7 +2,7 @@ package game.object;
 
 import game.entity.Entity;
 
-public class Potion extends Object{
+public class Potion extends Object implements Usable{
 	PotionType TYPE;
 
 	public PotionType getPotionType() {

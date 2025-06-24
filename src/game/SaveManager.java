@@ -52,6 +52,12 @@ public class SaveManager {
 				} else if(Ally.getInventory().size()==1) writer.write(Ally.getInventory().get(0).getNAME() + "-" + Ally.getInventory().get(0).getDESC() + "-" + Ally.getInventory().get(0).getAMOUNT());
 				else if(Ally.getInventory().size()==0) writer.write("º");
 			}
+			writer.write("\nEVENTS#");
+			for (boolean b : Game.SpecialEvents) {
+			    writer.write((b ? "1" : "0") + ";");
+			}
+
+			writer.write("\nCONFIG#TEXT_SPEED=" + Config.getTextSpeed());
 			writer.close();
 			return true;
 		} catch (IOException e) {
@@ -99,35 +105,53 @@ public class SaveManager {
 				}
 				Ally.setHP(Integer.valueOf(Health[0]));
 				Ally.setMP(Integer.valueOf(Magic[0]));
-				for(String s : Skills) {
-					String[] skill = s.split("-");
-					if(skill.length>0) {
-						Ally.addSkill(new Skill(skill[0], Integer.valueOf(skill[1]), DamageType.valueOf(skill[4]), Integer.valueOf(skill[2])));
+				
+				if(!(Skills[0].equalsIgnoreCase("º"))) {					
+					for(String s : Skills) {
+						String[] skill = s.split("-");
+						if(skill.length>0) {
+							Ally.addSkill(new Skill(skill[0], Integer.valueOf(skill[1]), DamageType.valueOf(skill[4]), Integer.valueOf(skill[2])));
+						}
 					}
 				}
 				
+				if(!(Items[0].equalsIgnoreCase("º"))) {
 				for(String s : Items) {
 					String[] item = s.split("-");
-					if(!(item[0].equalsIgnoreCase(""))) {
 						switch(item[0]) {
 							case "Potion":
 								Potion p = new Potion(item[1], item[2], PotionType.valueOf(item[4]));
 								p.setAMOUNT(Integer.valueOf(item[3]));
 								Ally.addToInventory(p);
 								break;
-							default:
-								Object obj = new Object(item[1], item[2]);
-								obj.setAMOUNT(Integer.valueOf(item[3]));
-								Ally.addToInventory(obj);
-								break;
 						}
 					}
 				}
 				
-				
 				Allies.add(Ally);
  			}
 			reader.close();
+			reader = new BufferedReader(new FileReader(directoryURL+fileName));
+			String l;
+			while ((l = reader.readLine()) != null) {
+			    if (l.startsWith("EVENTS#")) {
+			        String[] flags = l.substring(7).split(";");
+			        Game.SpecialEvents.clear();
+			        for (String flag : flags) {
+			            if (!flag.isBlank()) Game.SpecialEvents.add(flag.equals("1"));
+			        }
+			    } else if (l.startsWith("CONFIG#")) {
+			        String[] parts = l.substring(7).split("=");
+			        if (parts[0].equals("TEXT_SPEED")) {
+			            try {
+			                Config.setTextSpeed(Integer.parseInt(parts[1]));
+			            } catch (NumberFormatException e) {
+			                Config.setTextSpeed(40);
+			            }
+			        }
+			    }
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

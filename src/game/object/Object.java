@@ -2,7 +2,7 @@ package game.object;
 
 import game.entity.Entity;
 
-public class Object {
+public abstract class Object {
 	
 	// Variables
 	String NAME;

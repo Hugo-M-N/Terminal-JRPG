@@ -1,16 +1,16 @@
-package game.object;
+package game.item;
 
 import game.entity.Entity;
 
-public class Potion extends Object implements Usable{
+public class Potion extends Item implements Usable{
 	PotionType TYPE;
 
 	public PotionType getPotionType() {
 		return TYPE;
 	}
 	
-	public Potion(String NAME, String DESC, PotionType type) {
-		super(NAME, DESC);
+	public Potion(String NAME, String DESC, int PRICE, PotionType type) {
+		super(NAME, DESC, PRICE);
 		TYPE=type;
 	}
 	

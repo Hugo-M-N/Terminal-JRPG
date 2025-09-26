@@ -1,4 +1,4 @@
-package game.object;
+package game.item;
 
 import game.entity.Entity;
 

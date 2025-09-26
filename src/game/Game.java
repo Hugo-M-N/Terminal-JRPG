@@ -6,14 +6,19 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import game.combat.Combat;
+import game.entity.EnemyManager;
 import game.entity.Entity;
 import game.entity.EntityClass;
-import game.object.Object;
-import game.object.Potion;
-import game.object.PotionType;
+import game.item.Item;
+import game.item.ItemManager;
+import game.item.Potion;
+import game.item.PotionType;
 import game.skill.DamageType;
 import game.skill.Skill;
+import game.skill.SkillManager;
 import game.utils.InputHelper;
+import game.zone.ZoneZZ;
+import game.zone.ZoneManager;
 
 public class Game {
 	static String directoryURL = System.getProperty("user.home") + "/Terminal_JRPG/";
@@ -22,20 +27,23 @@ public class Game {
 	static Scanner sc = new Scanner(System.in);
 	static ScreenBuffer BUFFER = new ScreenBuffer();
 	
-	static ArrayList<String> ExploreOptions = new ArrayList<String>();
+	static ZoneZZ currentZone;
 	
-	static ArrayList<Boolean> SpecialEvents= new ArrayList<Boolean>();
-
 	public static void main(String[] args) throws IOException, InterruptedException {
 		
 		if (!directory.exists()) {
 			directory.mkdir();
 		}
 		boolean GAME = true;
+		
 		ArrayList<Entity> Allies = null;
-		ExploreOptions.add("Go back");
-
 		boolean invalid = true;
+		
+		SkillManager.loadSkills();
+		ItemManager.loadItemFiles();
+		EnemyManager.loadEnemies();
+		ZoneManager.loadZones();
+						
 		while (invalid) {
 			// Clear Terminal
 			InputHelper.clearScreen();
@@ -45,6 +53,9 @@ public class Game {
 			case "New Game":
 				// Create Character
 				Allies = NewStart();
+				ZoneManager.setCurrentZone("TEST");
+				currentZone.Enter(Allies, BUFFER);
+				
 				invalid = false;
 				break;
 			case "Load Game":
@@ -66,15 +77,7 @@ public class Game {
 				return;
 			}
 		}
-
-		//Special Events
-		SpecialEvents.add(true); // it's the first time you explore
-		SpecialEvents.add(true); // first time in the forest
-		SpecialEvents.add(true); // King goblin
-		SpecialEvents.add(true); // first time in the shop
-		
-
-		
+				
 		while (GAME) {
 			InputHelper.clearScreen();
 			
@@ -93,6 +96,7 @@ public class Game {
 			case "Status":
 				BUFFER.clearBuffer();
 				String[] stats = Allies.get(0).stats();
+				stats[2]+= currentZone.getName();
 				for(String s : stats) BUFFER.addToBuffer(s);
 				break;
 			case "Skills":
@@ -102,7 +106,7 @@ public class Game {
 
 			case "Inventory":
 				BUFFER.clearBuffer();
-				for(String s : Menus.ObjectList(Allies.get(0))) BUFFER.addToBuffer(s);;
+				Menus.Inventory(Allies);
 				break;
 
 			case "Menu":
@@ -115,7 +119,7 @@ public class Game {
 					boolean saved = SaveManager.SaveGame(Allies, Allies.get(0).getNAME());
 					if (saved) BUFFER.printAnimatedMessage("Game saved");	
 					else BUFFER.printAnimatedMessage("Some error happend.");
-
+					
 					break;
 				case "Load game":
 					ArrayList<Entity> Load = Menus.LoadMenu();
@@ -145,7 +149,8 @@ public class Game {
 		InputHelper.clearScreen();
 
 		BUFFER.clearBuffer();
-		
+		for(String s : BUFFER.getScreenBuffer()) System.out.println(s);
+		BUFFER.printAnimatedMessage("");
 		BUFFER.printAnimatedMessage("Welcome to Terminal_JRPG.");
 		BUFFER.printAnimatedMessage("This game is a turn based game inspired by the classic JRPG's.");
 		BUFFER.printAnimatedMessage("Hope you have fun!");
@@ -167,7 +172,7 @@ public class Game {
 		InputHelper.clearScreen();
 		
 		BUFFER.printAnimatedMessage("\033[0m");
-		BUFFER.printAnimatedMessage("There`s 4 main stats, STR, MAG, DEF, DEX");
+		BUFFER.printAnimatedMessage("There's 4 main stats, STR, MAG, DEF, DEX");
 		BUFFER.printAnimatedMessage("Strength (STR): Fisical damage.");
 		BUFFER.printAnimatedMessage("Magic (MAG): Magical damage and magic points (MP).");
 		BUFFER.printAnimatedMessage("Defense (DEF): Damage reduction and max health points (HP)");
@@ -222,109 +227,41 @@ public class Game {
 
 		ArrayList<Entity> Allies = new ArrayList<Entity>();
 		Allies.add(Player);
+		currentZone = ZoneZZ.START;
 
 		return Allies;
 	}
 
-	private static void Search(ArrayList<Entity> Allies) {
-		int n = (int) (Math.random() * 12);
-
-		if (n >= 0 && n <= 1)
-			System.out.println("You didn´t find anything.\n");
-		else if (n > 1 && n <= 3) {
-			int m = (int) (Math.random() * 10);
-			System.out.println("You find " + m + " gold.\n");
-			Allies.get(0).setGOLD(Allies.get(0).getGOLD() + m);
-		} else if (n > 3 && n <= 8) {
-			// Test 1vs1
-			boolean Losed = false;
-			ArrayList<Entity> Enemies = new ArrayList<Entity>();
-			Enemies.add(new Entity("Test Enemy", EntityClass.WARRIOR, (int) (Math.random() * Allies.get(0).getLVL()) + 1));
-			Combat comb = new Combat(Allies, Enemies, BUFFER);
-			for (Entity Ally : Allies) {
-				if (Ally.getHP() <= 0) {
-					Losed = true;
-				}
-			}
-			if (Losed) {
-				Allies.get(0).setHP(1);
-				int G = Allies.size() * 10;
-				if (Allies.get(0).getGOLD() > G)
-					Allies.get(0).setGOLD(Allies.get(0).getGOLD() - G);
-				else
-					Allies.get(0).setGOLD(0);
-				System.out.println("You lost some gold while you where unconscious.");
-			}
-
-		} else {
-			System.out.println("You find an item.");
-			int item = (int) Math.round(Math.random() * 2 + 1);
-			boolean found = false;
-			switch (item) {
-			case 1, 3:
-				System.out.println("You found a heal potion.");
-				Allies.get(0).addToInventory(new Potion("Heal potion",
-						"This potion will heal you 10% of your max health.", PotionType.HEAL1));
-				break;
-			case 2:
-				System.out.println("You found an ether");
-				Allies.get(0).addToInventory(new Potion("Ether",
-						"This potion will restore you 10% of your max magic points.", PotionType.ETHER1));
-			}
-		}
-
-	}
 
 	private static void Explore(ArrayList<Entity> Allies) throws InterruptedException {
-		BUFFER.printAnimatedMessage("");
+		String[] combResult;
+		boolean Losed=false;
 		
-		if(SpecialEvents.get(0)) {
-			BUFFER.printAnimatedMessage("You look around, you don't recognize anything. Actually, you don't know "
-			+ "anything, you \"understand\" basic concepts like yourself, your name and how some things are called, "
-			+ "but you can't remember more than a few minutes ago when you opened your eyes. So you don't know from "
-			+ "where that knoledge came from. You start to walk and two things caught your eye, a forest and a small "
-			+ "village.");
-			
-			ExploreOptions.add("Forest");
-			ExploreOptions.add("Village");
-			SpecialEvents.set(0, false);
-		}
+		if(currentZone==ZoneZZ.START && Event.First_Explore.getStatus()) currentZone.Enter(Allies, BUFFER);
 		
-		switch(Menus.Menu(ExploreOptions)) {
+		switch(Menus.Menu(currentZone.getConns())) {
 			case "Go back":
+				BUFFER.printAnimatedMessage("");
 				BUFFER.printAnimatedMessage("You sat down.");
 				break;
 			case "Forest":
-				ArrayList<Entity> Enemies = new ArrayList<Entity>();
-				boolean Losed=false;
-				if(SpecialEvents.get(1)) {
-					BUFFER.printAnimatedMessage("You walk into the forest, after some time you realize the forest is quiet, too quiet. "
-							+ "You don't hear anything, this shouldn't be like this, right? You keep walking and some trees with "
-							+ "marks start to appear, suddenly you hear a high pitched chirp and something jumps towards you.");
-					
-					Enemies.add(new Entity("Goblin", EntityClass.WARRIOR, 1));
-					Combat comb = new Combat(Allies, Enemies, BUFFER);
-					for(String s : comb.getResult()) BUFFER.addToBuffer(s);
-				} else if(SpecialEvents.get(2) && Allies.get(0).getLVL()>=7){
-					Enemies.add(new Entity("King Goblin", EntityClass.WARRIOR, 10));
-					Combat comb = new Combat(Allies, Enemies, BUFFER);	
-					for(String s : comb.getResult()) BUFFER.addToBuffer(s);
-				} else {
-					Enemies.add(new Entity("Goblin", EntityClass.WARRIOR, (int) (Math.random() * 3) + 1));
-					Combat comb = new Combat(Allies, Enemies, BUFFER);
-					for(String s : comb.getResult()) BUFFER.addToBuffer(s);
-				}
+				if(currentZone!=ZoneZZ.FOREST) currentZone = ZoneZZ.FOREST;
 				
-				for (Entity Ally : Allies) {
-					if (Ally.getHP() <= 0) {
-						Losed = true;
-					}
-				}
+				combResult = ZoneZZ.FOREST.Enter(Allies, BUFFER);
 				
-				if(!Losed && SpecialEvents.get(1)) {
-					SpecialEvents.set(1, false);
-					SpecialEvents.set(2, true);
-				} else if(!Losed && SpecialEvents.get(2) && SpecialEvents.get(1)==false) SpecialEvents.set(2, false);
+				for(String s : combResult) BUFFER.addToBuffer(s);
+				
+				if(combResult[0].equalsIgnoreCase("You ran away.")) return;
+				
+				if(combResult[0].equalsIgnoreCase("You Lose.")) Losed = true;
+				
+				if(!Losed && Event.First_Forest.getStatus()) {
+					BUFFER.printAnimatedMessage("");
+					BUFFER.printAnimatedMessage("\033[0m");
+					BUFFER.printAnimatedMessage("You see the gold.Maybe I should get some gear before explore the forest, I think I saw a village.");
+					Event.First_Forest.setStatus(false);
+					Event.King_Goblin.setStatus(true);
+				} else if(!Losed && Event.King_Goblin.getStatus()) Event.King_Goblin.setStatus(false);
 				
 				if (Losed) {
 					Allies.get(0).setHP(1);
@@ -333,15 +270,29 @@ public class Game {
 						Allies.get(0).setGOLD(Allies.get(0).getGOLD() - G);
 					else
 						Allies.get(0).setGOLD(0);
+					BUFFER.printAnimatedMessage("");
 					BUFFER.printAnimatedMessage("You lost some gold while you where unconscious.");
 				
 			}
-				
+
 				break;
 			case "Village":
+				if(currentZone!=ZoneZZ.VILLAGE) currentZone = ZoneZZ.VILLAGE;
+				
+				ZoneZZ.VILLAGE.Enter(Allies, BUFFER);
+				
 				break;
 			default:
 				break;
 		}
+	}
+	
+	public static ZoneZZ getCurrentZone() {
+		return currentZone;
+		
+	}
+	
+	public static void setCurrentZone(ZoneZZ zone) {
+		currentZone = zone;
 	}
 }

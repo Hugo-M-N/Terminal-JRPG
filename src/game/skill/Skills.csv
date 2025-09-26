@@ -1,0 +1,3 @@
+﻿NAME;EFFECT;STREGTH;COST;DURATION;DAMAGE_TYPE;DESCRIPTION
+Spark;DAMAGE;3;2;0;MAG;A small burst of magical energy
+Heal;HEAL;2;3;0;MAG;Focus magical energy on a point helps the heal to start

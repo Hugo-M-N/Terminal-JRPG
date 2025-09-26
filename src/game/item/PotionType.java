@@ -1,4 +1,4 @@
-package game.object;
+package game.item;
 
 public enum PotionType {
 	HEAL1,HEAL2,HEAL3,			//HP potion

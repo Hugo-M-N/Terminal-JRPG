@@ -1,0 +1,9 @@
+ID;NAME;DESC;PRICE;HP;MP;STR;DEF;MAG;DEX;EXCLUSIVE_CLASS
+RUSTY_SWORD;Rusty Sword;Has seen better days;10;0;0;2;0;0;0;WARRIOR
+OLD_SPELLBOOK;Old Spellbook;It's tears apart, only with a few pages left;10;0;0;0;0;1;1;MAGE
+WOODEN_STAFF;Wooden Staff;Just a staff with some carvings;10;0;0;2;0;1;0;CLERIC
+BLUNT_DAGGER;Blunt Dagger;It would be more useful for spreading butter;10;0;0;2;0;0;0;ROGUE
+COMMON_SWORD;Common Sword;A good steel swod;50;0;0;5;0;0;0;WARRIOR
+NOVICE_SPELLBOOK;Novice Spellbook;Basic spellbook, most mages use this to lear magic;70;0;0;0;0;3;1;MAGE
+COMBAT_STAFF;Combat Staff;Wood staff with steel at the ends;30;0;0;3;0;1;0;CLERIC
+SMALL_DAGGER;Small Dagger;Small thin dagger easy to hide;25;0;0;3;0;0;1;ROGUE

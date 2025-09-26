@@ -1,0 +1,6 @@
+ID;NAME;DESC;PRICE;HP;MP;STR;DEF;MAG;DEX
+RIPPED_CLOTH;Ripped Cloth;Just a dirty piece of cloth;2;0;0;0;1;0;0
+LEATHER_CHESTPLATE;Leather Chestplate;Cloth chestplate with leather plates;10;0;0;0;2;0;0
+WORN_HABIT;Worn Habit;Old brown habit, the old ornaments are no longer visible;5;0;0;0;1;1;0
+INDIGO_GABARDINE;Indigo Gabardine;Pretty elegant;45;0;0;0;2;1;0
+GREEN_CLOAK;Green Cloak;Functional and can hide most of the body;25;0;0;0;2;0;1

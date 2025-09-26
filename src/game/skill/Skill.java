@@ -6,21 +6,30 @@ public class Skill {
 
 	// Variables
 	String NAME;
-	int DMG;
+	String EFFECT;
+	int STR;
 	int COST;
 	int DURATION;
 	DamageType TYPE;
+	String DESCRIPTION;
 	
 	// Functions
 	public void Use(Entity target, int Stat) {
 		// This is only for testing
-		if(this.DURATION==0) {
-			int dmg =(int) (this.DMG * Stat * 0.33);
-			target.setHP(target.getHP()-dmg);
-			System.out.printf("%s made %d dmg to %s\n",this.NAME, dmg, target.getNAME());
-		} else {
-			// To-do: Implement Skills with duration
+		switch(EFFECT) {
+			case "DAMAGE":
+				if(this.DURATION==0) {
+					int dmg =(int) (this.STR * Stat * 0.33);
+					target.setHP(target.getHP()-dmg);
+					System.out.printf("%s made %d dmg to %s\n",this.NAME, dmg, target.getNAME());
+				} else {
+					// To-do: Implement Skills with duration
+				}
+				break;
+			case "HEAL":
+				break;
 		}
+		
 	}
 	
 	// Setters & Getters
@@ -33,12 +42,20 @@ public class Skill {
 		return this.NAME;
 	}
 	
-	public void setDMG(int DMG) {
-		this.DMG = DMG;
+	public void setEFFECT(String EFFECT) {
+		this.EFFECT = EFFECT;
 	}
 	
-	public int getDMG() {
-		return this.DMG;
+	public String getEFFECT() {
+		return this.EFFECT;
+	}
+	
+	public void setSTR(int STR) {
+		this.STR = STR;
+	}
+	
+	public int getSTR() {
+		return this.STR;
 	}
 	
 	public void setDamageType(DamageType TYPE) {
@@ -65,21 +82,24 @@ public class Skill {
 		return this.DURATION;
 	}
 	
+	public void setDESCRIPTION(String DESCRIPTION) {
+		this.DESCRIPTION = DESCRIPTION;
+	}
+	
+	public String getDESCRIPTION() {
+		return this.DESCRIPTION;
+	}
+	
 	// Constructors
 	
-	public Skill(String NAME, int DMG, DamageType TYPE, int COST, int DURATION){
+	public Skill(String NAME, String EFFECT, int STR, int COST, int DURATION, DamageType TYPE, String DESCRIPTION){
 		this.NAME = NAME;
-		this.DMG = DMG;
-		this.TYPE = TYPE;
+		this.EFFECT = EFFECT;
+		this.STR = STR;
 		this.COST = COST;
 		this.DURATION = DURATION;
+		this.TYPE = TYPE;
+		this.DESCRIPTION = DESCRIPTION;
 	}
 	
-	public Skill(String NAME, int DMG, DamageType TYPE, int COST){
-		this.NAME = NAME;
-		this.DMG = DMG;
-		this.TYPE=TYPE;
-		this.COST = COST;
-		this.DURATION = 0;
-	}
 }

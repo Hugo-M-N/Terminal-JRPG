@@ -1,73 +1,83 @@
 # Terminal_JRPG
-At least by now its just a proyect made for fun and learn.
+A JRPG engine built for fun and learning — data-driven, graphical, and extensible.
 
 > [!WARNING]
-> This proyect its still in development.<br>
-Some bugs might appear.
+> This project is still in development.<br>
+> Some bugs may appear.
 
->[!IMPORTANT]
->Now to play the game you only need to download the .jar file and execute ```java -jar Terminal_JRPG.jar```
->If this doesn't work check if you have a java JDK.
+> [!IMPORTANT]
+> To run the game, download the `.jar` file and execute `java -jar Terminal_JRPG.jar`<br>
+> Requires a Java JDK installed.
 
->[!IMPORTANT]
-> The save system is still in development. **Save files migth not work due to changes on save file structure**
+> [!IMPORTANT]
+> The save system is still in development. **Save files may not work across versions due to changes in the save file structure.**
 
 ---
 
-## Version: `V0.5`
+## Version: `V0.6` — World Systems
 
-### ⚔️ Combat System
-- Added inventory menu in combat with options to use, equip/unequip, or discard items.
-- Submenu navigation for items using arrow keys.
-- Improved skill handling.
-- Adjusted damage calculation for basic attacks (taking into account defense and reduced damage while defending).
+### 🖥️ Graphical Engine (GUI Mode)
+- Full AWT/Swing graphical interface running alongside the existing text mode.
+- `GameStateManager`: centralised state machine (`MAIN_MENU`, `EXPLORE`, `COMBAT`, `MENU`, `STATUS`, `INVENTORY`, `QUESTS`).
+- `InputManager`: keyboard listener that maps key events to navigation actions consumed each frame.
+- `Renderer`: draws the world (map tiles, NPCs, enemies, player sprite) and delegates UI overlays.
+- `WindowGraphics`: all GUI panels — status, inventory, equipment, skills, quests, save toast, level-up.
 
-### 🎒 Inventory and Items
-- Redesigned inventory menu with split ASCII interface:
-  - Left panel shows item list, right panel shows item description/details.
-  - Contextual information depending on selected item.
-- Added `Weapon`, `Armor`, and `Accessory` classes.
-- Initial implementation of `ItemManager` to load equipment from CSV files (`Weapons.csv`, `Armors.csv`).
+### ⚔️ Combat System Overhaul
+- Refactored into three classes: `CombatState`, `CombatLogic`, `CombatRenderer`.
+- Visual layout: allies on the left, enemies on the right, positions scale dynamically with party size.
+- Action log (up to 20 entries) shows enemy actions and combat results with UP/DOWN scroll.
+- Result phase waits for ENTER before returning to exploration; displays XP, gold, items, and level-up info.
 
-### 🌍 Zones and Events
-- First prototype of exploration maps in ASCII style (This is a test, may change in the future):
-  - Player (`@`) moves with arrow keys on a grid.
-  - Encounters triggered by stepping on special tiles (enemies, events).
-- Expanded event system (`Event`):
-  - Differentiates first exploration, first forest combat, and King Goblin boss fight.
-  - Uses flags to control story progression.
-  - CSV manager for easy zone development (W.I.P).
+### 🗺️ Map & World Systems
+- Tile-based `.map` files define layout, collision, NPC positions, enemy positions, and triggers.
+- **Trigger system**: data-driven tile triggers — `COMBAT`, `ZONE_TRANSITION`, `DIALOGUE`, `GIVE_ITEM`, `QUEST_START`, `QUEST_END`, `EVENT`. Sequential story beats supported on the same tile.
+- Sprite system: `SpriteManager` loads sprite sheets for player characters and monsters.
 
-### 💾 Save and Load
-- Improved `SaveManager`:
-  - Inventory and skills are now properly saved and loaded.
-  - Player configuration and events remain consistent across sessions.
-- Fixed errors when loading saves without skills or items.
+### 🧑 NPC System
+- NPCs defined in `src/npcs/Npcs.csv` with dialog lines, shop inventory, and quests.
+- Interaction menu (Talk / Shop / Quests / Leave) triggered by pressing CONFIRM adjacent to an NPC.
+- `ShopMenu`: browse and buy items with live gold display.
+- `DialogMenu`: paginated dialog advanced with ENTER.
 
-### 🖥️ User Interface
-- Improved `ScreenBuffer` (W.I.P):
-  - Text scrolling with automatic line management.
-  - Animated letter-by-letter printing for dialogues (`printAnimatedMessage`).
-  - Automatic text formatting to fit screen width.
-- Better integration between menu mode and text mode in `InputHelper`.
+### 📜 Quest System
+- Quest types: `KillQuest`, `FetchQuest`, `ReachQuest`.
+- Quests defined inline in the NPC CSV; registered and tracked by `QuestManager`.
+- Rewards (gold, XP, items) distributed equally across the party on completion.
+- Engine notifications update quest progress automatically on kills, item pickups, and zone transitions.
+- **NPC quest menu**: browse available quests with detail pane; ENTER to accept.
+- **Pause-menu quest panel**: Active / Completed tabs, progress and reward details, green *Complete Quest* button when conditions are met.
 
-### 🧩 Refactoring and Modularization
-- Changed hardcoded systems to a engine like systems (W.I.P). 
-- Added Managers to load from CSV:
-  - Enemies.
-  - Skills.
-  - Items (Armors and Weapons, item will be add in the future).
-- Began modularizing the engine:
-  - Prepared groundwork for quests and modular zones.
+### 🏅 Level-Up Panel
+- Levelling up outside combat shows a paginated modal — one page per level gained.
+- Each page shows the level line (yellow), stat increases (green), and newly unlocked skills (blue).
+- Page counter shown when multiple levels are gained at once.
+
+### 📊 Status & Inventory Panels
+- Full-screen status panel with four tabs: Stats, Equipment, Skills, Inventory.
+- Equipment tab: select slot, browse compatible items, equip or unequip in place.
+- Skills tab: view skills with MP cost; use non-damage skills directly from the panel.
+- Character selection bar to switch between party members.
+
+### 💾 Save Feedback
+- Save action shows a timed toast notification (green on success, red on failure).
+
+### 🧩 Engine & Data
+- `ClassManager`: loads player classes from CSV.
+- New item type CSVs: `Accessories.csv`, `Potions.csv`.
+- Item deep copy pattern (`copy()`) prevents shared-reference bugs across combats.
+- `Accessory.java` renamed from `Accesory.java` (typo fix).
+- All UI strings localised to English.
 
 ---
 
 ## 🚀 Roadmap
-- Convert save system to binary format for efficiency. (Delayd until last version of Save System for developement reasons).
+- Persist quest and trigger state in save files (kill counts, active flags).
 - Improve class system and make classes more meaningful.
-- Improve Exploration system from plain text to map exploration.
-- Add Quest System.
-- Update Zone System.
+- Dialogue system connected to NPC dialog trees and DIALOGUE triggers.
+- GIVE_ITEM and QUEST_START/END triggers fully wired to ItemManager and QuestManager.
+- Convert save system to binary format for efficiency.
 - Expand worldbuilding: new enemies, locations, story, and events.
+- Add sound/music system.
 
 ---

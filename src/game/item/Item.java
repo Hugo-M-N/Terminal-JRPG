@@ -7,6 +7,7 @@ import game.entity.Entity;
 public abstract class Item {
 	
 	// Variables
+	String ID;
 	String NAME;
 	String DESC;
 	int AMOUNT;
@@ -17,6 +18,8 @@ public abstract class Item {
 	
 	public void Equip() {}
 	
+	public void Unequip() {}
+	
 	public void add() {AMOUNT++;}
 	
 	public void add(int amount) {AMOUNT+= amount;}
@@ -26,6 +29,9 @@ public abstract class Item {
 	public void remove(int amount) {AMOUNT-=amount;}
 	
 	// Setters & Getters
+	public void setID(String ID) {this.ID = ID;}
+	public String getID() {return this.ID;}
+	
 	public void setNAME(String NAME) {this.NAME = NAME;}
 	public String getNAME() {return this.NAME;}
 	
@@ -39,12 +45,23 @@ public abstract class Item {
 	public int getPRICE() {return this.PRICE;}
 	
 	// Constructor
-	public Item(String NAME, String DESC, int PRICE) {
+	public Item(String ID,String NAME, String DESC, int PRICE) {
+		this.ID = ID;
 		this.NAME = NAME;
 		this.DESC = DESC;
 		this.PRICE = PRICE;
 		this.AMOUNT = 1;
 	}
+	
+	public Item(Item model) {
+		this.ID = model.ID;
+		this.NAME = model.NAME;
+		this.DESC = model.DESC;
+		this.PRICE = model.PRICE;
+		this.AMOUNT = model.AMOUNT;
+	}
+
+	public abstract Item copy();
 
 	public static ArrayList<String> getItemOptions(Item item) {
 	    ArrayList<String> options = new ArrayList<>();

@@ -17,11 +17,11 @@ public class SkillManager {
 			String line = reader.readLine();
 			while((line=reader.readLine())!=null) {
 				String[] parts = line.split(";");
-				Skill skill = new Skill(parts[0], parts[1], Integer.valueOf(parts[2]), Integer.valueOf(parts[3]), Integer.valueOf(parts[4]), DamageType.valueOf(parts[5]), parts[6]);
+				Skill skill = new Skill(parts[0], parts[1],parts[2], Integer.valueOf(parts[3]), Integer.valueOf(parts[4]), Integer.valueOf(parts[5]), DamageType.valueOf(parts[6]), parts[7]);
 				SkillList.put(skill.getNAME().toUpperCase(), skill);
 			}
+			reader.close();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

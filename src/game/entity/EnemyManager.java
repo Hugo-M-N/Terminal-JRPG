@@ -12,7 +12,7 @@ public class EnemyManager {
 	private static HashMap<String,Entity> Enemies = new HashMap<String,Entity>();
 	
 	public static void loadEnemies() {
-		File EnemiesFile = new File("src/game/entity/Enemies.csv");
+		File EnemiesFile = new File("src/entity/Enemies.csv");
 		
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(EnemiesFile));

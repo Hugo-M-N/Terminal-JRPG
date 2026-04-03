@@ -1,0 +1,2 @@
+ID;NAME;DIALOGS;HAS_SHOP;SHOP_ITEMS;HAS_QUEST;QUEST
+ELDER;Elder;Greetings, traveler. These lands have grown dangerous of late.#Goblins have been raiding our supplies. We desperately need someone to deal with them.#If you're willing to help, I have a few supplies to offer in return.;true;POTION-HERBS_POTION;true;KILL-GOBLIN_HUNT-Goblin Hunt-Kill 10 goblins-10-GOBLIN:GOBLIN_SHAMAN-100-50

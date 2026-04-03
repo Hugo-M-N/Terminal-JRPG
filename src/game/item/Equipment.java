@@ -12,13 +12,18 @@ public class Equipment extends Item {
 	public  int getBonusDEX() {return bonusDEX;}
 	
 	// Constructor
-	public Equipment(String NAME, String DESC,int PRICE,int HP, int MP, int STR, int DEF, int MAG, int DEX) {
-		super(NAME, DESC, PRICE);
+	public Equipment(String ID,String NAME, String DESC,int PRICE,int HP, int MP, int STR, int DEF, int MAG, int DEX) {
+		super(ID, NAME, DESC, PRICE);
 		bonusHP = HP;
 		bonusMP = MP;
 		bonusSTR = STR;
 		bonusDEF = DEF;
 		bonusMAG = MAG;
 		bonusDEX = DEX;
+	}
+	@Override
+	public Item copy() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

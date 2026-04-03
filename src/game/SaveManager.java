@@ -8,21 +8,22 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import game.entity.ClassManager;
 import game.entity.Entity;
-import game.entity.EntityClass;
-import game.item.Item;
+import game.item.Accessory;
+import game.item.Armor;
+import game.item.ItemManager;
 import game.item.Potion;
-import game.item.PotionType;
-import game.skill.DamageType;
+import game.item.Weapon;
 import game.skill.Skill;
+import game.skill.SkillManager;
 import game.zone.ZoneManager;
-import game.zone.ZoneZZ;
 
 public class SaveManager {
 	static String directoryURL= System.getProperty("user.home")+ "/Terminal_JRPG/saves/";
 	static File directory = new File(directoryURL);
-	
-	
+
+
 	public static boolean SaveGame(ArrayList<Entity> Allies, String fileName) {
 		CheckSaveDirectory();
 		try {
@@ -33,51 +34,63 @@ public class SaveManager {
 				writer.write("\n" + Ally.getNAME());
 				writer.write("#" + Ally.getLVL() + ";" + Ally.getXP());
 				writer.write("#" + Ally.getGOLD());
-				writer.write("#" + Ally.getCLASS());
+				writer.write("#" + Ally.getCLASS().getID());
 				writer.write("#" + Ally.getHP() + ";" + Ally.getMAX_HP());
 				writer.write("#" + Ally.getMP() + ";" + Ally.getMAX_MP());
 				writer.write("#" + Ally.getSTR() + ";" + Ally.getMAG() + ";" + Ally.getDEF() + ";" + Ally.getDEX());
 				writer.write("#");
-				if (Ally.getSkills().size()>1) {
-					for(Skill skill : Ally.getSkills()) {
-						writer.write(skill.getNAME() + "-" + skill.getEFFECT() + "-"+ skill.getSTR() + "-" + skill.getCOST() + "-" + skill.getDURATION() + "-" + skill.getDamageType() + "-"+ skill.getDESCRIPTION() + ";");
-					}					
-				} else if (Ally.getSkills().size()==1) writer.write(Ally.getSkills().get(0).getNAME() + "-" + "-" + Ally.getEFFECT()  + Ally.getSkills().get(0).getSTR() + "-" + Ally.getSkills().get(0).getCOST() + "-" + Ally.getSkills().get(0).getDURATION() + "-" + Ally.getSkills().get(0).getDamageType() + "-" + Ally.getSkills().get(0).getDESCRIPTION());
-				else if(Ally.getSkills().size()==0) writer.write("º");
-				writer.write("#");
-				if(Ally.getInventory().size()>=1) {
-					for(int i=0;i<Ally.getInventory().size();i++) {
-						if(Ally.getInventory().get(i) instanceof Potion) {
-							Potion p = (Potion) Ally.getInventory().get(i);
-							writer.write("Potion-"+p.getNAME()+"-"+p.getDESC()+"-"+p.getPRICE()+"-"+p.getAMOUNT()+"-"+p.getPotionType()+";");
-						}
+				if (Ally.getSkills().size()>0) {
+					for(int i=0; i<Ally.getSkills().size(); i++) {
+						Skill tmp = Ally.getSkills().get(i);
+						writer.write(tmp.getID());
+						if(i<Ally.getSkills().size()-1) writer.write(";");
 					}
-				} else if(Ally.getInventory().size()==0) writer.write("º");
+				} else writer.write("o");
+				writer.write("#");
+				if(Ally.getInventory().size()>0) {
+					for(int i=0;i<Ally.getInventory().size();i++) {
+						switch(Ally.getInventory().get(i)) {
+							case Accessory a -> writer.write("Accesory-"+a.getID()+"-"+a.getAMOUNT());
+							case Armor a -> writer.write("Armor-"+a.getID()+"-"+a.getAMOUNT());
+							case Weapon w -> writer.write("Weapon-"+w.getID()+"-"+w.getAMOUNT());
+							case Potion p -> writer.write("Potion-"+p.getID()+"-"+p.getAMOUNT());
+							default -> {}
+						}
+						if(i<Ally.getInventory().size()-1) writer.write(";");
+					}
+				} else writer.write("o");
+				writer.write("#" + Ally.getSpriteIdx());
+			writer.write("#" + (Ally.getWeapon()   != null ? Ally.getWeapon().getID()   : "o"));
+			writer.write(";" + (Ally.getArmor()    != null ? Ally.getArmor().getID()    : "o"));
+			writer.write(";" + (Ally.getAccesory() != null ? Ally.getAccesory().getID() : "o"));
 			}
 			writer.write("\nEVENTS#");
 			for (Event b : Event.values()) {
 			    writer.write((b.getStatus() ? b.name()+"=true" : b.name()+"=false") + ";");
 			}
 
-			writer.write("\nCONFIG#TEXT_SPEED=" + Config.getTextSpeed());
+			writer.write("\nCONFIG#TEXT_SPEED=" + Config.getTEXT_SPEED());
 			writer.close();
 			return true;
 		} catch (IOException e) {
 			System.err.println(e);
 			return false;
 		}
-		
+
 	}
-	
+
 	public static ArrayList<Entity> LoadGame(String fileName) {
 		CheckSaveDirectory();
 		ArrayList<Entity> Allies = new ArrayList<Entity>();
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(directoryURL+fileName));
 			String line=reader.readLine();
-			ZoneManager.setCurrentZone(reader.readLine());
+			ZoneManager.setCurrentZone(reader.readLine().toUpperCase());
+			TextGame.setCurrentZone(ZoneManager.getCurrentZone());
 			while((line=reader.readLine()) != null) {
+				if (line.startsWith("EVENTS#") || line.startsWith("CONFIG#")) break;
 				String[] parts = line.split("#");
+				if (parts.length < 9) continue;
 				String name = parts[0];
 				String[] Level = parts[1].split(";");
 				String Gold = parts[2];
@@ -92,45 +105,63 @@ public class SaveManager {
 						Integer.valueOf(Stats[2]), Integer.valueOf(Stats[3]));
 				Ally.setXP(Integer.valueOf(Level[1]));
 				Ally.setGOLD(Integer.valueOf(Gold));
-				switch (Class) {
-					case "WARRIOR":
-						Ally.setCLASS(EntityClass.WARRIOR);
-						break;
-					case "MAGE":
-						Ally.setCLASS(EntityClass.MAGE);
-						break;
-					case "CLERIC":
-						Ally.setCLASS(EntityClass.CLERIC);
-						break;
-					case "ROGUE":
-						Ally.setCLASS(EntityClass.ROGUE);
-						break;				
-				}
+				Ally.setCLASS(ClassManager.getClasses().get(Class));
 				Ally.setHP(Integer.valueOf(Health[0]));
 				Ally.setMP(Integer.valueOf(Magic[0]));
-				
-				if(!(Skills[0].equalsIgnoreCase("º"))) {					
+
+				if(!(Skills[0].equalsIgnoreCase("o"))) {
 					for(String s : Skills) {
-						String[] skill = s.split("-");
-						if(skill.length>0) {
-							Ally.addSkill(new Skill(skill[0], skill[1], Integer.valueOf(skill[2]), Integer.valueOf(skill[3]), Integer.valueOf(skill[4]), DamageType.valueOf(skill[5]), skill[6]));
-						}
+						Ally.addSkill(SkillManager.getSkill(s));
 					}
 				}
-				
-				if(!(Items[0].equalsIgnoreCase("º"))) {
-				for(String s : Items) {
-					String[] item = s.split("-");
+
+				if(!(Items[0].equalsIgnoreCase("o"))) {
+					for(String s : Items) {
+						if (s == null || s.trim().isEmpty()) continue;
+						String[] item = s.split("-");
 						switch(item[0]) {
-							case "Potion":
-								Potion p = new Potion(item[1], item[2], Integer.valueOf(item[3]), PotionType.valueOf(item[5]));
-								p.setAMOUNT(Integer.valueOf(item[4]));
+							case "Accesory" -> {
+								Accessory a = ItemManager.getAccessory(item[1]);
+								a.setAMOUNT(Integer.valueOf(item[2]));
+								Ally.addToInventory(a);
+							}
+							case "Armor" -> {
+								Armor a = ItemManager.getArmor(item[1]);
+								a.setAMOUNT(Integer.valueOf(item[2]));
+								Ally.addToInventory(a);
+							}
+							case "Weapon" -> {
+								Weapon w = ItemManager.getWeapon(item[1]);
+								w.setAMOUNT(Integer.valueOf(item[2]));
+								Ally.addToInventory(w);
+							}
+							case "Potion" -> {
+								Potion p = ItemManager.getPotion(item[1]);
+								p.setAMOUNT(Integer.valueOf(item[2]));
 								Ally.addToInventory(p);
-								break;
+							}
+							default -> {}
 						}
 					}
 				}
-				
+
+				if (parts.length >= 10) {
+					try { Ally.setSpriteIdx(Integer.parseInt(parts[9])); }
+					catch (NumberFormatException ignored) {}
+				}
+
+				if (parts.length >= 11) {
+					String[] equip = parts[10].split(";");
+					String weaponId    = equip.length > 0 ? equip[0] : "o";
+					String armorId     = equip.length > 1 ? equip[1] : "o";
+					String accessoryId = equip.length > 2 ? equip[2] : "o";
+					for (game.item.Item item : Ally.getInventory()) {
+						if (!weaponId.equals("o")    && item instanceof Weapon    w && w.getID().equals(weaponId))    Ally.setWeapon(w);
+						if (!armorId.equals("o")     && item instanceof Armor     a && a.getID().equals(armorId))     Ally.setArmor(a);
+						if (!accessoryId.equals("o") && item instanceof Accessory c && c.getID().equals(accessoryId)) Ally.setAccesory(c);
+					}
+				}
+
 				Allies.add(Ally);
  			}
 			reader.close();
@@ -146,24 +177,28 @@ public class SaveManager {
 			        String[] parts = line.substring(7).split("=");
 			        if (parts[0].equals("TEXT_SPEED")) {
 			            try {
-			                Config.setTextSpeed(Integer.parseInt(parts[1]));
+			                Config.setTEXT_SPEED(Integer.parseInt(parts[1]));
 			            } catch (NumberFormatException e) {
-			                Config.setTextSpeed(40);
+			                Config.setTEXT_SPEED(40);
 			            }
 			        }
 			    }
 			}
-
+			reader.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return Allies;
 	}
-	
+
 	public static void CheckSaveDirectory() {
 		if(!directory.exists()) {
 			directory.mkdir();
 		}
+	}
+
+	public static String[] getFileNames() {
+		return directory.list();
 	}
 }

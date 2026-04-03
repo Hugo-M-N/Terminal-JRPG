@@ -1,0 +1,108 @@
+# code;name;glyph;fg;bg;solid
+# === SUELOS / EXTERIOR ===
+00;GrassLight;.;green;black;false
+01;GrassDense;';green;black;false
+02;TallGrass;` ;green;black;true
+03;Dirt;:;yellow;black;false
+04;Path;·;yellow;black;false
+05;Sand;∙;bright_yellow;black;false
+06;StoneFloor;°;bright_white;black;false
+07;Gravel;•;white;black;false
+08;Water;≈;blue;black;true
+09;ShallowWater;~;bright_cyan;black;true
+0A;Wave;~~~;bright_blue;black;true
+0B;Swamp;∩;green;black;true
+# === PUENTES / MADERA ===
+0C;BridgeH;═;yellow;black;false
+0D;BridgeV;║;yellow;black;false
+0E;WoodPlank;▒;yellow;black;false
+0F;Ladder;#;yellow;black;false
+# === VEGETACIÓN ===
+20;TreeTrunk;▓;yellow;black;true
+21;TreeCanopy1;▒;green;black;true
+22;TreeCanopy2;▓;bright_green;black;true
+23;Bush;♣;green;black;true
+24;Flower;○;bright_yellow;black;false
+25;TallFlower;●;magenta;black;false
+26;Rock;■;white;black;true
+27;Pebble;▪;bright_white;black;false
+28;Mushroom;◦;magenta;black;false
+29;LeafScatter;,;green;black;false
+# === MONTAÑA / ACANTILADOS ===
+30;CliffWall;█;bright_white;black;true
+31;CliffEdge;▓;white;black;true
+32;CliffShade;▒;bright_black;black;true
+33;Boulder;■;bright_white;black;true
+34;Hill;▴;yellow;black;true
+35;SlopeDown;▾;yellow;black;true
+# === PUEBLO / CONSTRUCCIONES ===
+40;WallStone;█;white;black;true
+41;WallBrick;▓;bright_red;black;true
+42;FenceH;─;yellow;black;true
+43;FenceV;│;yellow;black;true
+44;Window;□;bright_white;black;true
+45;DoorClosed;■;yellow;black;true
+46;DoorOpen;▭;yellow;black;false
+47;Roof;▓;red;black;true
+48;RoofEdge;▬;bright_yellow;black;true
+49;SignPost;|;bright_yellow;black;true
+4A;Well;O;cyan;black;true
+4B;LampPost;|;bright_yellow;black;true
+4C;Barrel;O;yellow;red;true
+4D;Crate;■;yellow;black;true
+4E;MarketStall;▒;bright_yellow;magenta;true
+4F;Bed;▌;magenta;black;true
+50;Chair;▐;yellow;black;true
+51;Table;▬;bright_yellow;black;true
+# === MAZMORRA ===
+60;DungeonFloor;.;white;black;false
+61;DungeonCracked;';bright_yellow;black;false
+62;DungeonDark;▒;bright_black;black;false
+63;DungeonWall;█;white;black;true
+64;IronBars;║;bright_white;black;true
+65;Pillar;█;bright_white;black;true
+66;Chasm; ;black;black;true
+67;Void; ;black;black;true
+68;Trap;^;bright_red;black;true
+69;Spike;v;red;black;true
+6A;Gate;╬;yellow;black;true
+6B;Bars;║;bright_white;black;true
+6C;Rubble;▪;bright_yellow;black;true
+6D;Bones;°;white;black;true
+# === ESPECIALES ===
+70;Spawn;*;bright_cyan;black;false
+71;Exit;>;bright_yellow;black;false
+72;Portal;◉;bright_magenta;black;false
+73;TreasureClosed;■;bright_yellow;black;true
+74;TreasureOpen;□;bright_yellow;black;false
+75;NPC;@;magenta;black;false
+76;Enemy;@;bright_red;black;false
+77;Shop;$;yellow;black;false
+78;HealPoint;+;bright_green;black;false
+79;SavePoint;S;cyan;black;false
+# === DECORACIÓN / EFECTOS ===
+80;ShadowLight;░;bright_black;black;false
+81;ShadowMid;▒;bright_black;black;false
+82;ShadowHeavy;▓;black;black;false
+83;Ash;.;bright_black;black;false
+84;Snow;°;bright_white;bright_black;false
+85;Ice;□;bright_cyan;black;true
+86;Fire;♥;bright_red;black;false
+87;Torch;▲;bright_yellow;black;false
+88;ArrowUp;↑;bright_white;black;false
+89;ArrowDown;↓;bright_white;black;false
+8A;ArrowLeft;←;bright_white;black;false
+8B;ArrowRight;→;bright_white;black;false
+8C;ArrowBoth;↔;bright_white;black;false
+8D;ArrowVertical;↕;bright_white;black;false
+# === INTERFAZ / SIMBOLOS EXTRA ===
+90;Cursor;■;bright_white;black;false
+91;Pointer;►;bright_white;black;false
+92;PointerLeft;◄;bright_white;black;false
+93;IndicatorUp;▲;bright_white;black;false
+94;IndicatorDown;▼;bright_white;black;false
+95;IndicatorRight;▸;bright_white;black;false
+96;IndicatorLeft;◂;bright_white;black;false
+97;FrameCorner;╔;white;black;false
+98;FrameEdge;═;white;black;false
+99;FrameJoin;╬;white;black;false

@@ -9,11 +9,18 @@ public class Potion extends Item implements Usable{
 		return TYPE;
 	}
 	
-	public Potion(String NAME, String DESC, int PRICE, PotionType type) {
-		super(NAME, DESC, PRICE);
+	public Potion(String ID, String NAME, String DESC, int PRICE, PotionType type) {
+		super(ID, NAME, DESC, PRICE);
 		TYPE=type;
 	}
 	
+	@Override
+	public Item copy() {
+		Potion p = new Potion(ID, NAME, DESC, PRICE, TYPE);
+		p.setAMOUNT(AMOUNT);
+		return p;
+	}
+
 	public void Use(Entity target) {
 		if(!(this.AMOUNT>0)) return;
 		switch(TYPE) {

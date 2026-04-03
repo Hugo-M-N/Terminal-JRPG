@@ -1,12 +1,16 @@
 package game;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 import game.combat.Combat;
+import game.entity.ClassManager;
 import game.entity.EnemyManager;
 import game.entity.Entity;
-import game.entity.EntityClass;
+import game.map.Map;
+import game.map.Tileset;
+import game.npc.NpcManager;
 import game.skill.SkillManager;
 import game.utils.InputHelper;
 import game.zone.ZoneManager;
@@ -14,39 +18,45 @@ import game.zone.ZoneManager;
 public class Tests {
 	static Scanner sc = new Scanner(System.in);
 	public static void main(String[] args) throws InterruptedException {
-		String[][] Map = new String[15][30];
-		for(int y=0; y<Map.length; y++){
-			for(int x=0; x<Map[y].length; x++) {
-				 Map[y][x] = "\033[92m\033[42mw";
-			}
-		}
 		ScreenBuffer BUFFER = new ScreenBuffer();		
 		
+		try {
+			Tileset.loadTileSet();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		SkillManager.loadSkills();
+		ClassManager.LoadClasses();		
 		EnemyManager.loadEnemies();
+		NpcManager.loadNpcFiles();
 		ZoneManager.loadZones();
 		ZoneManager.setCurrentZone("TEST");
+		Map map = ZoneManager.getCurrentZone().getMap();
 		
-		Entity Player = new Entity("Player", EntityClass.WARRIOR, 1);
-		Entity test = EnemyManager.getEnemy("GOBLIN_SHAMAN");
+		Entity Player = new Entity("Player", ClassManager.getClasses().get("CLERIC"), 1);
 		ArrayList<Entity> Allies = new ArrayList<Entity>();
 		Allies.add(Player);
-		Allies.add(test);
-		Allies.get(0).addXP(30);
 		
-		int Px=15, Py=7;
-		int Ex=25, Ey=5;
+//		ArrayList<Item> items = new ArrayList<Item>() ;
+//		items.add(new Potion("Heal", "Heals 10% of your HP", 15, PotionType.HEAL1));
+//		items.add(new Potion("Ether", "Restores 10% of your MP", 15, PotionType.ETHER1));
+//		
+//		Menus.shopMenu(items, Allies);
+//		
+		int Px=10, Py=7;
+		int Ex=15, Ey=5;
 		int Hx=15, Hy=4;
 		
 		try {
+			InputHelper.enableMenuMode();
 			while(true) {
 				InputHelper.clearScreen();
-				for(int y=0; y<Map.length; y++){
-					for(int x=0; x<Map[y].length; x++) {
+				for(int y=0; y<(map.getHeight()); y++){
+					for(int x=0; x<(map.getWidth()); x++) {
 						if((Px==x) && (Py==y)) System.out.print("\033[35m\033[104m@\033[0m");
-						else if((Ex==x) && (Ey==y)) System.out.print("\033[31m#");
+						else if((Ex==x) && (Ey==y)) System.out.print("\033[31m#\033[0m");
 						else if((Hx==x) && (Hy==y)) System.out.print("\033[96m\033[46m+\033[0m");
-						else System.out.print(Map[y][x]);
+						else System.out.print(map.getMapTile(x, y));
 					}
 					System.out.println();
 				}
@@ -76,7 +86,7 @@ public class Tests {
 				case "ESCAPE":
 					String sel;
 					do {
-						sel = Menus.mainGameMenu();
+						sel = TextMenus.mainGameMenu();
 						switch(sel) {
 						case "Status":
 							for(String s : Allies.get(0).stats()) BUFFER.addToBuffer(s);
@@ -105,7 +115,7 @@ public class Tests {
 						Enemies.clear();
 						Enemies.add(EnemyManager.getEnemy("KING_GOBLIN"));
 					}
-					Combat comb = new Combat(Allies, Enemies, BUFFER);
+					new Combat(Allies, Enemies, BUFFER);
 					Px=tmpX;
 					Py=tmpY;
 				}

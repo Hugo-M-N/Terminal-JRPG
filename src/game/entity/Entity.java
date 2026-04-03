@@ -1,16 +1,17 @@
 package game.entity;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-import game.item.Accesory;
+import game.item.Accessory;
 import game.item.Armor;
 import game.item.Item;
 import game.item.Weapon;
+import game.quest.Quest;
 import game.skill.DamageType;
 import game.skill.Skill;
 import game.skill.SkillManager;
-import game.utils.InputHelper;
-import game.zone.Quest;
 
 public class Entity {
 
@@ -18,7 +19,7 @@ public class Entity {
 	String NAME;
 	int LVL;
 	int XP;
-	int LvlXP;
+	private int LvlXP;
 	int GOLD;
 	EntityClass CLASS;
 	int HP;
@@ -30,8 +31,9 @@ public class Entity {
 	int DEF;
 	int DEX;
 	int T_COUNT;
+	int spriteIdx = 0;
 	int ACCION;
-	Skill EFFECT = new Skill("", "", 0, 0, 0, null, "");
+	Skill EFFECT = new Skill("","", "", 0, 0, 0, null, "");
 	int EF_COUNT;
 	boolean isDef;
 	ArrayList<Skill> Skills = new ArrayList<>();
@@ -41,7 +43,7 @@ public class Entity {
 	//Equipment
 	Weapon weapon;
 	Armor armor;
-	Accesory accesory;
+	Accessory accesory;
 	
 	// Functions
 	
@@ -61,126 +63,59 @@ public class Entity {
 		
 	}
 	
-	public String[] addXP(int XP) {
-		String[] result = {""};
+	/** Returns one List<String> per level gained (empty list = no level-up). */
+	public List<List<String>> addXP(int XP) {
+		List<List<String>> results = new ArrayList<>();
 		this.XP += XP;
-		 LvlXP = (int) (LVL + 9 + (Math.pow(LVL, (LVL*0.05))));
-		while(this.XP>=LvlXP) {
-			this.XP-=LvlXP;
-			result = LvlUp();
+		setLvlXP((int) (LVL + 9 + (Math.pow(LVL, (LVL*0.05)))));
+		while (this.XP >= getLvlXP()) {
+			this.XP -= getLvlXP();
+			results.add(Arrays.asList(LvlUp()));
 		}
-		
-		return result;
+		return results;
 	}
 	
 	public String[] LvlUp() {
+		if (CLASS == null) {
+			LVL++;
+			return new String[]{String.format("%s got lvl %d!", NAME, LVL)};
+		}
+		int statsPoints = CLASS.getSTR()+CLASS.getMAG()+CLASS.getDEF()+CLASS.getDEX();
 		ArrayList<String> result = new ArrayList<String>();
+
 		LVL++;
 		result.add(String.format("%s got lvl %d!",NAME, LVL));
-		int points= (int) (Math.random()*3)+1;
+		int points= (int) (Math.random()*(statsPoints/4))+1;
 		while(points>0) {
-			int Stat = (int) (Math.random()*12);
-			if(CLASS==EntityClass.WARRIOR) {
-				if(Stat<=4) {
-					STR++;
-					result.add(String.format("%s's STR is now %d.", NAME, STR));
-				} else if(Stat<6) {
-					MAG++;
-					result.add(String.format("%s's MAG is now %d.", NAME, MAG));
-				} else if(Stat<=8) {
-					DEF++;
-					result.add(String.format("%s's DEF is now %d.", NAME, DEF));
-				} else {
-					DEX++;
-					result.add(String.format("%s's DEX is now %d.", NAME, DEX));
-				}
-				
-				MAX_HP = (int) (DEF * 0.40 * LVL) * 6;
-				HP = MAX_HP;
-				MAX_MP = (int) (MAG * 0.1 * LVL) * 2;
-				MP = MAX_MP;
-				
-			} else if(CLASS==EntityClass.MAGE) {
-				if(Stat<=1) {
-					STR++;
-					result.add(String.format("%s's STR is now %d.", NAME, STR));
-				} else if(Stat<7) {
-					MAG++;
-					result.add(String.format("%s's MAG is now %d.", NAME, MAG));
-				} else if(Stat<=9) {
-					DEF++;
-					result.add(String.format("%s's DEF is now %d.", NAME, DEF));
-				} else {
-					DEX++;
-					result.add(String.format("%s's DEX is now %d.", NAME, DEX));
-				}
-				
-				MAX_HP = (int) (DEF * 0.15 * LVL) * 6;
-				HP = MAX_HP;
-				MAX_MP = (int) (MAG * 0.25 * LVL) * 2;
-				if(MAX_MP<25) MAX_MP = 25;
-				MP = MAX_MP;
-				
-			} else if(CLASS==EntityClass.CLERIC) {
-				if(Stat<=1) {
-					STR++;
-					result.add(String.format("%s's STR is now %d.", NAME, STR));
-				} else if(Stat<6) {
-					MAG++;
-					result.add(String.format("%s's MAG is now %d.", NAME, MAG));
-				} else if(Stat<=10) {
-					DEF++;
-					result.add(String.format("%s's DEF is now %d.", NAME, DEF));
-				} else {
-					DEX++;
-					result.add(String.format("%s's DEX is now %d.", NAME, DEX));
-				}
-				
-				MAX_HP = (int) (DEF * 0.25 * LVL) * 6;
-				HP = MAX_HP;
-				MAX_MP = (int) (MAG * 0.2 * LVL) * 2;
-				if(MAX_MP<20) MAX_MP = 20;
-				MP = MAX_MP;
-				
-			} else if(CLASS==EntityClass.ROGUE) {
-				if(Stat<=4) {
-					STR++;
-					result.add(String.format("%s's STR is now %d.", NAME, STR));
-				} else if(Stat<6) {
-					MAG++;
-					result.add(String.format("%s's MAG is now %d.", NAME, MAG));
-				} else if(Stat<=7) {
-					DEF++;
-					result.add(String.format("%s's DEF is now %d.", NAME, DEF));
-				} else {
-					DEX++;
-					result.add(String.format("%s's DEX is now %d.", NAME, DEX));
-				}
-				
-				MAX_HP = (int) (DEF * 0.20 * LVL) * 6;
-				HP = MAX_HP;
-				MAX_MP = (int) (MAG * 0.15 * LVL) * 2;
-				MP = MAX_MP;
-				
-			}
-			if(!(MAX_HP>0)) {
-				MAX_HP++;
-				HP = MAX_HP;
-			}
+	        int roll = (int)(Math.random() * statsPoints);
+
+	        if (roll < CLASS.getSTR()) {
+	            STR++;
+	            result.add(String.format("%s's STR is now %d.", NAME, STR));
+	        } else if (roll < CLASS.getSTR() + CLASS.getMAG()) {
+	            MAG++;
+	            result.add(String.format("%s's MAG is now %d.", NAME, MAG));
+	        } else if (roll < CLASS.getSTR() + CLASS.getMAG() + CLASS.getDEF()) {
+	            DEF++;
+	            result.add(String.format("%s's DEF is now %d.", NAME, DEF));
+	        } else {
+	            DEX++;
+	            result.add(String.format("%s's DEX is now %d.", NAME, DEX));
+	        }
+
 			points--;
-			
-			if(MAX_HP<5) MAX_HP = 5;
-			HP = MAX_HP;
 		}
-		/*
-		 * To-do:
-		 * -Add Skills when a certain Lvl its achieved
-		 * 
-		 * */
-		// Test
-		if(LVL==5) {
-			Skills.add(new Skill("Test Skill", "DAMAGE", 2, 2, 0, DamageType.STR,""));
-			result.add("You unlocked: Test Skill");
+		
+		MAX_HP = (int) ((DEF * CLASS.getHealthFactor() * LVL) * 6);
+		if(MAX_HP<5) MAX_HP = 5;
+		HP = MAX_HP;
+		MAX_MP = (int) ((MAG * CLASS.getMagicFactor() * LVL) * 2);
+		MP = MAX_MP;
+		
+		Skill tmp = CLASS.getSkills().get(LVL);
+		if(tmp!=null) {
+			Skills.add(tmp);
+			result.add("You unlocked: " + tmp.getNAME());
 		}
 		
 		return (String[]) result.toArray(new String[0]);
@@ -211,11 +146,11 @@ public class Entity {
 				"Stats",
 				"Current Zone: ",
 				"Name: "+ NAME,
-				"Class: "+ CLASS,
+				"Class: "+ (CLASS != null ? CLASS.getNAME() : "?"),
 				"Weapon: " + ((this.getWeapon()!=null) ? this.getWeapon().getNAME() : ""),
 				"Armor: " + ((this.getArmor()!=null) ? this.getArmor().getNAME() : ""),
 				"Accesory: " + ((this.getAccesory()!=null) ? this.getAccesory().getNAME() : ""),
-				"Lvl: "+ LVL+ "   " + XP + "/" + LvlXP + "XP" + "   G:"+GOLD,
+				"Lvl: "+ LVL+ "   " + XP + "/" + getLvlXP() + "XP" + "   G:"+GOLD,
 				"HP "+ HP+"/"+MAX_HP + "  " + healthBar + "\033[0m" ,
 				"MP "+ MP+"/"+MAX_MP +"  " + manaBar + "\033[0m",
 				"STR: "+ STR + ((bonusSTR>0) ? " +"+bonusSTR : ""),
@@ -271,6 +206,8 @@ public class Entity {
 
 	public int getT_COUNT() {return T_COUNT;}
 	public void setT_COUNT(int T_COUNT) {this.T_COUNT = T_COUNT;}
+	public int getSpriteIdx() { return spriteIdx; }
+	public void setSpriteIdx(int idx) { this.spriteIdx = idx; }
 
 	public int getACCION() {return ACCION;}
 	public void setACCION(int ACCION) {this.ACCION = ACCION;}
@@ -301,8 +238,8 @@ public class Entity {
 	public Armor getArmor() {return armor;}
 	public void setArmor(Armor armor) {this.armor=armor;}
 	
-	public Accesory getAccesory() {return accesory;}
-	public void setAccesory(Accesory accesory) {this.accesory=accesory;}
+	public Accessory getAccesory() {return accesory;}
+	public void setAccesory(Accessory accesory) {this.accesory=accesory;}
 	
 	public int getEffectiveSTR() {
 		int finalSTR = this.getSTR();
@@ -343,55 +280,25 @@ public class Entity {
 		this.NAME = NAME;
 		this.LVL = LVL;
 		this.XP=0;
-		this.LvlXP = (int) (this.LVL + 9 + (Math.pow(this.LVL, (this.LVL*0.05))));
+		this.setLvlXP((int) (this.LVL + 9 + (Math.pow(this.LVL, (this.LVL*0.05)))));
 		this.CLASS = CLASS;
 		this.GOLD = 0;
 		
 		
 		int LVL_P = 12 + LVL;
-		switch(CLASS) {
-			
-			case WARRIOR:
-				// Main stats: DEF & STR
-				this.STR = (int) ((4.0/12) * LVL_P);
-				this.MAG = (int) ((1.0/12) * LVL_P);
-				this.DEF = (int) ((5.0/12) * LVL_P);
-				this.DEX = (int) ((2.0/12) * LVL_P);
-				this.MAX_HP = (int) (this.DEF * 0.40 * LVL) * 6;
-				this.MAX_MP = (int) (this.MAG * 0.1 * LVL) * 2;
-				
-				break;
-			case MAGE:
-				// Main stats: MAG & DEX
-				this.STR = (int) ((1.0/12) * LVL_P);
-				this.MAG = (int) ((6.0/12) * LVL_P);
-				this.DEF = (int) ((2.0/12) * LVL_P);
-				this.DEX = (int) ((3.0/12) * LVL_P);
-				this.MAX_HP = (int) (this.DEF * 0.15 * LVL) * 6;
-				this.MAX_MP = (int) (this.MAG * 0.25 * LVL) * 2;
-				if(MAX_MP<25) MAX_MP = 25;
-				Skills.add(SkillManager.getSkill("SPARK"));
-				break;
-			case CLERIC:
-				// Main stats: MAG & DEF
-				this.STR = (int) ((1.0/12) * LVL_P);
-				this.MAG = (int) ((5.0/12) * LVL_P);
-				this.DEF = (int) ((4.0/12) * LVL_P);
-				this.DEX = (int) ((2.0/12) * LVL_P);
-				this.MAX_HP = (int) (this.DEF * 0.25 * LVL) * 6;
-				this.MAX_MP = (int) (this.MAG * 0.2 * LVL) * 2;
-				if(MAX_MP<20) MAX_MP = 20;
-				Skills.add(SkillManager.getSkill("HEAL"));
-				break;
-			case ROGUE:
-				// Main stats: STR & DEX
-				this.STR = (int) ((4.0/12) * LVL_P);
-				this.MAG = (int) ((2.0/12) * LVL_P);
-				this.DEF = (int) ((1.0/12) * LVL_P);
-				this.DEX = (int) ((5.0/12) * LVL_P);
-				this.MAX_HP = (int) (this.DEF * 0.20 * LVL) * 6;
-				this.MAX_MP = (int) (this.MAG * 0.15 * LVL) * 2;
-				break;
+		
+		double statsPoints = CLASS.getSTR()+CLASS.getMAG()+CLASS.getDEF()+CLASS.getDEX();
+		
+		this.STR = (int) ((CLASS.getSTR() / statsPoints) * LVL_P);
+		this.MAG = (int) ((CLASS.getMAG() / statsPoints) * LVL_P);
+		this.DEF = (int) ((CLASS.getDEF() / statsPoints) * LVL_P);
+		this.DEX = (int) ((CLASS.getDEX() / statsPoints) * LVL_P);
+		this.MAX_HP = (int) ((this.DEF * CLASS.getHealthFactor() * LVL) * 6);
+		this.MAX_MP = (int) ((this.MAG * CLASS.getMagicFactor() * LVL) * 5);
+
+		for(int i = 0; i<=LVL; i++) {
+			Skill tmp = CLASS.getSkills().get(i);
+			if(tmp!=null) addSkill(tmp);
 		}
 		
 		if(this.MAX_HP<5) this.MAX_HP = 5;
@@ -402,7 +309,7 @@ public class Entity {
 	public Entity(String NAME, int LVL, int MAX_HP, int MAX_MP, int STR, int MAG, int DEF, int DEX) {
 		this.NAME = NAME;
 		this.LVL = LVL;
-		this.LvlXP = (int) (this.LVL + 9 + (Math.pow(this.LVL, (this.LVL*0.05))));
+		this.setLvlXP((int) (this.LVL + 9 + (Math.pow(this.LVL, (this.LVL*0.05)))));
 		this.MAX_HP = MAX_HP;
 		this.HP = MAX_HP;
 		this.MAX_MP = MAX_MP;
@@ -417,15 +324,31 @@ public class Entity {
 	public Entity(Entity model) {
 		this.NAME = model.NAME;
 		this.LVL = model.LVL;
+		this.XP = model.XP;
+		this.LvlXP = model.LvlXP;
+		this.CLASS = model.CLASS;
 		this.MAX_HP = model.MAX_HP;
-		this.HP = MAX_HP;
+		this.HP = this.MAX_HP;
 		this.MAX_MP = model.MAX_MP;
-		this.MP = MAX_MP;
+		this.MP = this.MAX_MP;
 		this.STR = model.STR;
 		this.MAG = model.MAG;
 		this.DEF = model.DEF;
 		this.DEX = model.DEX;
-		this.GOLD = 0;
+		this.GOLD = model.GOLD;
+		this.Skills = new ArrayList<Skill>(model.Skills);
+		for (Item item : model.Inventory) this.Inventory.add(item.copy());
+		this.spriteIdx = model.spriteIdx;
+		// Restore equipped items pointing to the new copies
+		if (model.weapon   != null) for (Item i : this.Inventory) { if (i instanceof Weapon   w && w.getID().equals(model.weapon.getID()))   { this.weapon   = w; break; } }
+		if (model.armor    != null) for (Item i : this.Inventory) { if (i instanceof Armor    a && a.getID().equals(model.armor.getID()))    { this.armor    = a; break; } }
+		if (model.accesory != null) for (Item i : this.Inventory) { if (i instanceof Accessory c && c.getID().equals(model.accesory.getID())) { this.accesory = c; break; } }
+	}
+	public int getLvlXP() {
+		return LvlXP;
+	}
+	public void setLvlXP(int lvlXP) {
+		LvlXP = lvlXP;
 	}
 
 }
